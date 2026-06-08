@@ -25,6 +25,11 @@ body {
 .register{
     display:flex;
 }
+.login {
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
     color: var(--bs-secondary-color);
