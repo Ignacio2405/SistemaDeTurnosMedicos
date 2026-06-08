@@ -1,0 +1,76 @@
+# Build folders
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+
+# Logs
+*.log
+
+# Publish output
+publish/
+artifacts/
+
+# Entity Framework
+*.dbmdl
+
+# Local databases
+*.mdf
+*.ldf
+*.sqlite
+*.sqlite3
+*.db
+
+
+
+# User secrets
+secrets.json
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Test results
+TestResults/
+*.trx
+
+# Coverage
+coverage/
+coverage.xml
+*.coverage
+*.coveragexml
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Azure
+.publishsettings
+
+# Docker
+docker-compose.override.yml
+
+# Temporary files
+*.tmp
+*.temp
