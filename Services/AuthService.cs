@@ -53,7 +53,7 @@ public class AuthService : IAuthService
         {
             IdUsuario = usuario.IdUsuario,
             Dni = model.Dni,
-            FechaNacimiento = model.FechaNacimiento,
+            FechaNacimiento = model.FechaNacimiento.ToUniversalTime(),
             Telefono = model.Telefono,
             Direccion = model.Direccion
         };

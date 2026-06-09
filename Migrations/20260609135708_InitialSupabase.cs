@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace SistemaSaludGoya.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialSupabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,10 +16,10 @@ namespace SistemaSaludGoya.Migrations
                 name: "especialidad",
                 columns: table => new
                 {
-                    IdEspecialidad = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    IdEspecialidad = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Descripcion = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -29,10 +30,10 @@ namespace SistemaSaludGoya.Migrations
                 name: "permiso",
                 columns: table => new
                 {
-                    IdPermiso = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    IdPermiso = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Descripcion = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -43,9 +44,9 @@ namespace SistemaSaludGoya.Migrations
                 name: "rol",
                 columns: table => new
                 {
-                    IdRol = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    IdRol = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -56,14 +57,14 @@ namespace SistemaSaludGoya.Migrations
                 name: "usuario",
                 columns: table => new
                 {
-                    IdUsuario = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Apellido = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Activo = table.Column<bool>(type: "bit", nullable: false),
-                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    IdUsuario = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Apellido = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    PasswordHash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Activo = table.Column<bool>(type: "boolean", nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -74,8 +75,8 @@ namespace SistemaSaludGoya.Migrations
                 name: "rol_permiso",
                 columns: table => new
                 {
-                    IdRol = table.Column<int>(type: "int", nullable: false),
-                    IdPermiso = table.Column<int>(type: "int", nullable: false)
+                    IdRol = table.Column<int>(type: "integer", nullable: false),
+                    IdPermiso = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -98,11 +99,11 @@ namespace SistemaSaludGoya.Migrations
                 name: "medico",
                 columns: table => new
                 {
-                    IdMedico = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdUsuario = table.Column<int>(type: "int", nullable: false),
-                    Matricula = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    Telefono = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    IdMedico = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdUsuario = table.Column<int>(type: "integer", nullable: false),
+                    Matricula = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    Telefono = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -119,16 +120,16 @@ namespace SistemaSaludGoya.Migrations
                 name: "paciente",
                 columns: table => new
                 {
-                    IdPaciente = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdUsuario = table.Column<int>(type: "int", nullable: false),
-                    Dni = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
-                    FechaNacimiento = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Telefono = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Direccion = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Suspendido = table.Column<bool>(type: "bit", nullable: false),
-                    FechaFinSuspension = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    MotivoSuspension = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    IdPaciente = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdUsuario = table.Column<int>(type: "integer", nullable: false),
+                    Dni = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: false),
+                    FechaNacimiento = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Telefono = table.Column<string>(type: "text", nullable: true),
+                    Direccion = table.Column<string>(type: "text", nullable: true),
+                    Suspendido = table.Column<bool>(type: "boolean", nullable: false),
+                    FechaFinSuspension = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    MotivoSuspension = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -145,8 +146,8 @@ namespace SistemaSaludGoya.Migrations
                 name: "usuario_rol",
                 columns: table => new
                 {
-                    IdUsuario = table.Column<int>(type: "int", nullable: false),
-                    IdRol = table.Column<int>(type: "int", nullable: false)
+                    IdUsuario = table.Column<int>(type: "integer", nullable: false),
+                    IdRol = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -169,12 +170,12 @@ namespace SistemaSaludGoya.Migrations
                 name: "horario_atencion",
                 columns: table => new
                 {
-                    IdHorarioAtencion = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdMedico = table.Column<int>(type: "int", nullable: false),
-                    DiaSemana = table.Column<int>(type: "int", nullable: false),
-                    HoraDesde = table.Column<TimeSpan>(type: "time", nullable: false),
-                    HoraHasta = table.Column<TimeSpan>(type: "time", nullable: false)
+                    IdHorarioAtencion = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdMedico = table.Column<int>(type: "integer", nullable: false),
+                    DiaSemana = table.Column<int>(type: "integer", nullable: false),
+                    HoraDesde = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    HoraHasta = table.Column<TimeSpan>(type: "interval", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -191,8 +192,8 @@ namespace SistemaSaludGoya.Migrations
                 name: "medico_especialidad",
                 columns: table => new
                 {
-                    IdMedico = table.Column<int>(type: "int", nullable: false),
-                    IdEspecialidad = table.Column<int>(type: "int", nullable: false)
+                    IdMedico = table.Column<int>(type: "integer", nullable: false),
+                    IdEspecialidad = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -215,9 +216,9 @@ namespace SistemaSaludGoya.Migrations
                 name: "historial_medico",
                 columns: table => new
                 {
-                    IdHistorialMedico = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdPaciente = table.Column<int>(type: "int", nullable: false)
+                    IdHistorialMedico = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdPaciente = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -234,14 +235,14 @@ namespace SistemaSaludGoya.Migrations
                 name: "turno",
                 columns: table => new
                 {
-                    IdTurno = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdPaciente = table.Column<int>(type: "int", nullable: false),
-                    IdMedico = table.Column<int>(type: "int", nullable: false),
-                    FechaHora = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Estado = table.Column<int>(type: "int", nullable: false),
-                    MotivoConsulta = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    IdTurno = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdPaciente = table.Column<int>(type: "integer", nullable: false),
+                    IdMedico = table.Column<int>(type: "integer", nullable: false),
+                    FechaHora = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Estado = table.Column<int>(type: "integer", nullable: false),
+                    MotivoConsulta = table.Column<string>(type: "text", nullable: true),
+                    FechaCreacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -264,13 +265,13 @@ namespace SistemaSaludGoya.Migrations
                 name: "consulta",
                 columns: table => new
                 {
-                    IdConsulta = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdTurno = table.Column<int>(type: "int", nullable: false),
-                    Diagnostico = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Observaciones = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Indicaciones = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FechaConsulta = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    IdConsulta = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdTurno = table.Column<int>(type: "integer", nullable: false),
+                    Diagnostico = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    Observaciones = table.Column<string>(type: "text", nullable: true),
+                    Indicaciones = table.Column<string>(type: "text", nullable: true),
+                    FechaConsulta = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -287,13 +288,13 @@ namespace SistemaSaludGoya.Migrations
                 name: "pago",
                 columns: table => new
                 {
-                    IdPago = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdTurno = table.Column<int>(type: "int", nullable: false),
-                    Monto = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    FechaPago = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    MetodoPago = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Pagado = table.Column<bool>(type: "bit", nullable: false)
+                    IdPago = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdTurno = table.Column<int>(type: "integer", nullable: false),
+                    Monto = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    FechaPago = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    MetodoPago = table.Column<string>(type: "text", nullable: false),
+                    Pagado = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -310,12 +311,12 @@ namespace SistemaSaludGoya.Migrations
                 name: "documento",
                 columns: table => new
                 {
-                    IdDocumento = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdConsulta = table.Column<int>(type: "int", nullable: false),
-                    NombreArchivo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RutaArchivo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FechaSubida = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    IdDocumento = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdConsulta = table.Column<int>(type: "integer", nullable: false),
+                    NombreArchivo = table.Column<string>(type: "text", nullable: false),
+                    RutaArchivo = table.Column<string>(type: "text", nullable: false),
+                    FechaSubida = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -332,11 +333,11 @@ namespace SistemaSaludGoya.Migrations
                 name: "estudio",
                 columns: table => new
                 {
-                    IdEstudio = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdConsulta = table.Column<int>(type: "int", nullable: false),
-                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    IdEstudio = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdConsulta = table.Column<int>(type: "integer", nullable: false),
+                    Nombre = table.Column<string>(type: "text", nullable: false),
+                    Descripcion = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -353,11 +354,11 @@ namespace SistemaSaludGoya.Migrations
                 name: "receta",
                 columns: table => new
                 {
-                    IdReceta = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdConsulta = table.Column<int>(type: "int", nullable: false),
-                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FechaEmision = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    IdReceta = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdConsulta = table.Column<int>(type: "integer", nullable: false),
+                    Descripcion = table.Column<string>(type: "text", nullable: false),
+                    FechaEmision = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
