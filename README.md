@@ -2,34 +2,16 @@
 
 ## Configuración inicial después de clonar el repositorio
 
-Una vez clonado el proyecto, antes de ejecutarlo, es necesario crear o actualizar la base de datos mediante las migraciones de Entity Framework Core.
+### Paso obligatorio: Configurar tu conexión segura (User Secrets)
+Se migró la base de datos de SQL Server local a **PostgreSQL en la nube usando Supabase**. 
+Para no exponer contraseñas en GitHub, usamos una herramienta nativa de Visual Studio llamada "User Secrets".
 
-### Crear la base de datos
-En sql server management studio pon: CREATE DATABASE BDSistemaSaludGoya;
+1. En el Explorador de Soluciones, hace **clic derecho sobre el proyecto** (`SistemaSaludGoya`).
+2. Selecciona **"Administrar secretos del usuario"** (Manage User Secrets).
+3. Se abrirá un archivo `secrets.json` vacío. Pega la estructura con la contraseña real que está en nuestro canal de comunicación.
+4. Guarda y cierra el archivo secrets.json.
 
-Abrir la **Package Manager Console** (en vs2026 esta abajo a la izquierda)y ejecutar:
-
-```powershell
-Update-Database
-```
-
-Si la base de datos no existe, Entity Framework la creará automáticamente utilizando las migraciones existentes.
-
----
-
-### Crear primera migración:
-
-```powershell
-Add-Migration InitialCreate
-```
-Luego aplicar los cambios:
-
-```powershell
-Update-Database
-```
-Aca los cambios ya van estar reflejado en la bd(se crean las tablas)
-
----
+Ya podes ejecutar el proyecto, y este se va a conectar automáticamente a la base de datos en la nube.
 
 ## Arquitectura utilizada
 
