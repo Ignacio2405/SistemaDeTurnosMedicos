@@ -1,0 +1,40 @@
+﻿@model IEnumerable<SistemaSaludGoya.Models.Documento>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Documentación Adjunta</h2>
+        <a asp-action="Create" asp-route-idConsulta="@ViewBag.IdConsulta" class="btn btn-success">Subir Documento</a>
+    </div>
+
+    <table class="table table-hover border">
+        <thead class="table-dark">
+            <tr>
+                <th>Nombre del Archivo</th>
+                <th>Fecha Subida</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var doc in Model)
+                {
+                    <tr>
+                        <td>@doc.NombreArchivo</td>
+                        <td>@doc.FechaSubida.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <a href="@doc.RutaArchivo" target="_blank" class="btn btn-primary btn-sm">Ver Archivo</a>
+                            <a asp-action="Delete" asp-route-id="@doc.IdDocumento" class="btn btn-danger btn-sm">Eliminar</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="3" class="text-center text-muted">No hay documentos adjuntos para esta consulta.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

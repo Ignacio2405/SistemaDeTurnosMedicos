@@ -1,0 +1,51 @@
+﻿@model IEnumerable<SistemaSaludGoya.Models.Receta>
+
+@{
+    ViewData["Title"] = "Listado de Recetas Digitales";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Recetas Médicas Emitidas</h2>
+    </div>
+
+    <table class="table table-striped table-hover border">
+        <thead class="table-dark">
+            <tr>
+                <th>ID Receta</th>
+                <th>Fecha Emisión</th>
+                <th>Paciente</th>
+                <th>Médico Prescriptor</th>
+                <th>Prescripción (Descripción)</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var receta in Model)
+                {
+                    <tr>
+                        <td>@receta.IdReceta</td>
+                        <td>@receta.FechaEmision.ToString("dd/MM/yyyy")</td>
+
+                        <td>@receta.Consulta.Turno.Paciente.Usuario.Apellido, @receta.Consulta.Turno.Paciente.Usuario.Nombre</td>
+
+                        <td>Dr/a. @receta.Consulta.Turno.Medico.Usuario.Apellido, @receta.Consulta.Turno.Medico.Usuario.Nombre</td>
+
+                        <td>@receta.Descripcion</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@receta.IdReceta" class="btn btn-info btn-sm text-white">Ver Receta completa</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted">No se registran recetas emitidas en el sistema.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

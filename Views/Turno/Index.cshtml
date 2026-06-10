@@ -1,0 +1,50 @@
+﻿@model IEnumerable<SistemaSaludGoya.Models.Turno>
+
+@{
+    ViewData["Title"] = "Gestión de Turnos";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Agenda de Turnos</h2>
+        <a asp-action="Create" class="btn btn-primary">Agendar Nuevo Turno</a>
+    </div>
+
+    <table class="table table-striped table-hover border">
+        <thead class="table-dark">
+            <tr>
+                <th>ID Turno</th>
+                <th>Fecha y Hora</th>
+                <th>Paciente</th>
+                <th>Médico</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var turno in Model)
+                {
+                    <tr>
+                        <td>@turno.IdTurno</td>
+                        <td>@turno.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+
+                        <td>@turno.Paciente.Usuario.Apellido, @turno.Paciente.Usuario.Nombre</td>
+
+                        <td>Dr/a. @turno.Medico.Usuario.Apellido, @turno.Medico.Usuario.Nombre</td>
+
+                        <td>
+                            <a asp-action="Details" asp-route-id="@turno.IdTurno" class="btn btn-info btn-sm text-white">Ver Detalle</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No hay turnos programados en la agenda.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

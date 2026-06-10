@@ -1,0 +1,36 @@
+﻿@model IEnumerable<SistemaSaludGoya.Models.Pago>
+
+<div class="container mt-4">
+    <h2>Gestión de Pagos</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Paciente</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Método</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.Turno.Paciente.Usuario.Apellido, @p.Turno.Paciente.Usuario.Nombre</td>
+                    <td>$@p.Monto.ToString("F2")</td>
+                    <td>
+                        @if (p.Pagado)
+                        {
+                            <span class="badge bg-success">Pagado</span>
+                        }
+                        else
+                        {
+
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        }
+                    </td>
+                    <td>@p.MetodoPago</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

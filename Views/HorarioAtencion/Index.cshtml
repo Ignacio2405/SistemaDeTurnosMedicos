@@ -1,0 +1,33 @@
+﻿@model IEnumerable<SistemaSaludGoya.Models.HorarioAtencion>
+@{
+    ViewData["Title"] = "Horarios de Atención";
+}
+
+<div class="container mt-4">
+    <h3>Horarios del Médico</h3>
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Día</th>
+                <th>Desde</th>
+                <th>Hasta</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var h in Model)
+            {
+                <tr>
+                    <td>@h.DiaSemana.ToString()</td>
+                    <td>@h.HoraDesde.ToString(@"hh\:mm")</td>
+                    <td>@h.HoraHasta.ToString(@"hh\:mm")</td>
+                    <td>
+                        <form asp-action="Delete" asp-route-id="@h.IdHorarioAtencion">
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
