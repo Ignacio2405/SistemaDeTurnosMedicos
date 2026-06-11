@@ -1,0 +1,93 @@
+@model SistemaSaludGoya.ViewModel.RegisterMedicoVM
+@{
+    ViewData["Title"] = "Registro como Médico";
+    Layout = "~/Views/Shared/_LayoutAuth.cshtml";
+}
+
+<div class="auth-page">
+    <div class="auth-card" style="max-width:480px;">
+        <div class="auth-header">
+            <img src="~/Images/logoNegro.png" class="auth-logo-img" alt="Sistema Salud Goya" />
+            <span class="auth-tag">Portal Médico</span>
+            <h1 class="auth-title">Solicitar acceso</h1>
+            <p class="auth-subtitle">Registrate como profesional — un administrador aprobará tu cuenta</p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert-error-custom">@Html.ValidationSummary(true)</div>
+        }
+
+        <form asp-action="RegisterMedico" method="post">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Nombre</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input asp-for="Nombre" type="text" class="form-input-custom" placeholder="Tu nombre" id="reg-nombre" />
+                    </div>
+                    <span asp-validation-for="Nombre" class="validation-msg"></span>
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Apellido</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input asp-for="Apellido" type="text" class="form-input-custom" placeholder="Tu apellido" id="reg-apellido" />
+                    </div>
+                    <span asp-validation-for="Apellido" class="validation-msg"></span>
+                </div>
+            </div>
+
+            <div class="form-group-custom">
+                <label class="form-label-custom">Correo electrónico</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">✉️</span>
+                    <input asp-for="Email" type="email" class="form-input-custom" placeholder="medico@email.com" id="reg-email" />
+                </div>
+                <span asp-validation-for="Email" class="validation-msg"></span>
+            </div>
+
+            <div class="form-group-custom">
+                <label class="form-label-custom">Contraseña</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input asp-for="Password" type="password" class="form-input-custom" placeholder="Mínimo 6 caracteres" id="reg-password" />
+                </div>
+                <span asp-validation-for="Password" class="validation-msg"></span>
+            </div>
+
+            <div class="form-group-custom">
+                <label class="form-label-custom">Matrícula (opcional)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🏥</span>
+                    <input asp-for="Matricula" type="text" class="form-input-custom" placeholder="El admin puede asignarla luego" id="reg-matricula" />
+                </div>
+            </div>
+
+            <div class="form-group-custom">
+                <label class="form-label-custom">Teléfono (opcional)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">📞</span>
+                    <input asp-for="Telefono" type="text" class="form-input-custom" placeholder="+54 9 ..." id="reg-telefono" />
+                </div>
+            </div>
+
+            <div class="auth-actions">
+                <button type="submit" class="btn-auth-primary" id="btn-register-medico">
+                    🩺 Enviar solicitud
+                </button>
+                <div class="auth-divider"><span>¿Ya tenés cuenta?</span></div>
+                <a asp-action="Login" class="btn-auth-secondary" id="link-login-medico">
+                    🔑 Iniciar sesión
+                </a>
+                <a asp-action="Register" style="font-size:0.8rem;color:#64748b;text-align:center;display:block;margin-top:0.5rem;">
+                    ¿Sos paciente? Registrate aquí
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

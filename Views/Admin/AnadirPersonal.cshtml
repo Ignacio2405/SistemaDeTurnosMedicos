@@ -1,0 +1,170 @@
+@model SistemaSaludGoya.ViewModel.AnadirPersonalVM
+@{
+    ViewData["Title"] = "Añadir Personal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .page-tag { display:inline-block; background:#E5ECF0; color:#2A6F97; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .page-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; margin-bottom:0.2rem; }
+    .form-label { font-size:0.82rem; font-weight:600; color:#374151; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:0.4rem; }
+    .form-ctrl { width:100%; padding:0.65rem 0.9rem; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.9rem; outline:none; transition:border 0.18s; font-family:inherit; }
+    .form-ctrl:focus { border-color:#2A6F97; box-shadow:0 0 0 3px rgba(42,111,151,0.1); }
+    .form-group { margin-bottom:1.1rem; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    @@media(max-width:600px){ .form-grid{grid-template-columns:1fr;} }
+    .rol-selector { display:flex; gap:1rem; }
+    .rol-option { flex:1; }
+    .rol-option input[type=radio] { display:none; }
+    .rol-card { border:2px solid #e2e8f0; border-radius:12px; padding:1rem; cursor:pointer; text-align:center; transition:all 0.18s; }
+    .rol-option input:checked + .rol-card { border-color:#2A6F97; background:#eef5fa; }
+    .rol-card .rol-icon { font-size:2rem; margin-bottom:0.4rem; }
+    .rol-card .rol-name { font-weight:700; font-size:0.9rem; color:#1a3a4f; }
+    .rol-card .rol-desc { font-size:0.78rem; color:#64748b; margin-top:0.2rem; }
+    .section-divider { border:none; border-top:1px solid #eef2f5; margin:1.25rem 0; }
+    .section-subtitle { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#94a3b8; margin-bottom:0.85rem; }
+    .required-mark { color:#c62828; }
+</style>
+
+<div style="margin-bottom:1.5rem;">
+    <a asp-action="Dashboard" style="font-size:0.82rem;color:#64748b;text-decoration:none;">← Volver al panel</a>
+    <span class="page-tag" style="display:block;margin-top:0.5rem;">➕ Personal</span>
+    <h1 class="page-title">Añadir personal</h1>
+    <p style="color:#64748b;font-size:0.9rem;">Creá la cuenta de un médico o recepcionista directamente desde aquí.</p>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;padding:0.75rem 1rem;color:#c62828;margin-bottom:1rem;">⚠️ @TempData["Error"]</div>
+}
+
+<div class="app-card" style="max-width:720px;">
+    <div class="app-card-header"><span>👤</span><h4>Datos de acceso</h4></div>
+    <div class="app-card-body">
+        <form method="post" asp-action="AnadirPersonal" id="formAnadir">
+
+            @Html.ValidationSummary(false, "", new { style = "color:#c62828;font-size:0.85rem;margin-bottom:1rem;" })
+
+            <!-- Nombre y Apellido -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" asp-for="Nombre">Nombre <span class="required-mark">*</span></label>
+                    <input asp-for="Nombre" class="form-ctrl" placeholder="Nombre" required />
+                    <span asp-validation-for="Nombre" style="color:#c62828;font-size:0.78rem;"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" asp-for="Apellido">Apellido <span class="required-mark">*</span></label>
+                    <input asp-for="Apellido" class="form-ctrl" placeholder="Apellido" required />
+                    <span asp-validation-for="Apellido" style="color:#c62828;font-size:0.78rem;"></span>
+                </div>
+            </div>
+
+            <!-- Email y Password -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" asp-for="Email">Email <span class="required-mark">*</span></label>
+                    <input asp-for="Email" type="email" class="form-ctrl" placeholder="correo@ejemplo.com" required />
+                    <span asp-validation-for="Email" style="color:#c62828;font-size:0.78rem;"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" asp-for="Password">Contraseña temporal <span class="required-mark">*</span></label>
+                    <input asp-for="Password" type="password" class="form-ctrl" placeholder="Mínimo 6 caracteres" required />
+                    <span asp-validation-for="Password" style="color:#c62828;font-size:0.78rem;"></span>
+                </div>
+            </div>
+
+            <hr class="section-divider" />
+            <p class="section-subtitle">Rol y datos profesionales</p>
+
+            <!-- Selector de rol -->
+            <div class="form-group">
+                <label class="form-label">Rol a asignar <span class="required-mark">*</span></label>
+                <div class="rol-selector">
+                    <label class="rol-option">
+                        <input type="radio" name="RolAsignar" value="Medico" checked onchange="toggleMedico(this)" />
+                        <div class="rol-card">
+                            <div class="rol-icon">🩺</div>
+                            <div class="rol-name">Médico</div>
+                            <div class="rol-desc">Confirma turnos y carga consultas</div>
+                        </div>
+                    </label>
+                    <label class="rol-option">
+                        <input type="radio" name="RolAsignar" value="Recepcionista" onchange="toggleMedico(this)" />
+                        <div class="rol-card">
+                            <div class="rol-icon">🗂️</div>
+                            <div class="rol-name">Recepcionista</div>
+                            <div class="rol-desc">Ve y cancela todos los turnos</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Matrícula y Teléfono (solo médico) -->
+            <div id="camposMedico">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Matricula">Matrícula <span class="required-mark">*</span></label>
+                        <input asp-for="Matricula" class="form-ctrl" placeholder="Ej: MP-12345" id="inp-matricula" />
+                        <span asp-validation-for="Matricula" style="color:#c62828;font-size:0.78rem;"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Telefono">Teléfono</label>
+                        <input asp-for="Telefono" class="form-ctrl" placeholder="Ej: 3772-123456" />
+                    </div>
+                </div>
+
+                <!-- Especialidades -->
+                <div class="form-group">
+                    <label class="form-label">Especialidades <span class="required-mark">*</span></label>
+                    @if (!Model.Especialidades.Any())
+                    {
+                        <p style="color:#94a3b8;font-size:0.875rem;">No hay especialidades cargadas aún.</p>
+                    }
+                    else
+                    {
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:0.5rem;margin-top:0.4rem;">
+                            @for (int i = 0; i < Model.Especialidades.Count; i++)
+                            {
+                                var esp = Model.Especialidades[i];
+                                <label style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:0.875rem;transition:all 0.15s;"
+                                       onmouseover="this.style.borderColor='#2A6F97'"
+                                       onmouseout="this.style.borderColor=this.querySelector('input').checked?'#2A6F97':'#e2e8f0'">
+                                    <input type="checkbox"
+                                           name="EspecialidadesSeleccionadas"
+                                           value="@esp.IdEspecialidad"
+                                           style="accent-color:#2A6F97;"
+                                           onchange="this.closest('label').style.borderColor=this.checked?'#2A6F97':'#e2e8f0'" />
+                                    @esp.Nombre
+                                </label>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <div style="display:flex;align-items:center;gap:1rem;">
+                <button type="submit" class="btn-app-primary" id="btn-crear-personal">
+                    ➕ Crear cuenta
+                </button>
+                <a asp-action="Dashboard" class="btn-app-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function toggleMedico(radio) {
+        const camposMedico = document.getElementById('camposMedico');
+        const inp = document.getElementById('inp-matricula');
+        const esMedico = radio.value === 'Medico';
+        camposMedico.style.display = esMedico ? 'block' : 'none';
+        inp.required = esMedico;
+        if (!esMedico) {
+            inp.value = '';
+            document.querySelectorAll('[name="EspecialidadesSeleccionadas"]').forEach(cb => cb.checked = false);
+        }
+    }
+</script>
+}

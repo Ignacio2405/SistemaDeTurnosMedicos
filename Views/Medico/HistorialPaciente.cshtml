@@ -1,0 +1,73 @@
+@model SistemaSaludGoya.ViewModel.HistorialPacienteVM
+@{
+    ViewData["Title"] = "Historial del Paciente";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .page-tag { display:inline-block; background:#e3f2fd; color:#1565c0; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .page-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; letter-spacing:-0.5px; }
+    .paciente-info { background:white; border-radius:16px; padding:1.5rem; box-shadow:0 4px 20px rgba(0,0,0,0.06); margin-bottom:1.5rem; display:flex; gap:1.5rem; flex-wrap:wrap; }
+    .info-item { display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:#374151; }
+    .info-icon { width:32px; height:32px; border-radius:8px; background:#e3f2fd; display:flex; align-items:center; justify-content:center; }
+    .consulta-card { background:white; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.06); margin-bottom:1rem; overflow:hidden; }
+    .consulta-header { background:linear-gradient(135deg,#1565c0,#0d47a1); color:white; padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:center; }
+    .consulta-fecha { font-weight:700; font-size:0.95rem; }
+    .consulta-medico { font-size:0.82rem; opacity:0.85; }
+    .consulta-body { padding:1.25rem; }
+    .consulta-section { margin-bottom:1rem; }
+    .consulta-section:last-child { margin-bottom:0; }
+    .consulta-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#64748b; margin-bottom:0.3rem; }
+    .consulta-text { font-size:0.9rem; color:#1a3a4f; line-height:1.6; }
+    .empty-state { text-align:center; padding:3rem; color:#94a3b8; }
+</style>
+
+<span class="page-tag">📋 Historial Clínico</span>
+<h1 class="page-title">@Model.NombreCompleto</h1>
+
+<div class="paciente-info">
+    <div class="info-item"><div class="info-icon">🪪</div><span>DNI: <strong>@Model.Dni</strong></span></div>
+    @if (!string.IsNullOrEmpty(Model.Telefono))
+    { <div class="info-item"><div class="info-icon">📞</div><span>@Model.Telefono</span></div> }
+    @if (Model.FechaNacimiento.HasValue)
+    { <div class="info-item"><div class="info-icon">🎂</div><span>@Model.FechaNacimiento.Value.ToString("dd/MM/yyyy")</span></div> }
+    <div class="info-item"><div class="info-icon">📋</div><span>@Model.Consultas.Count consulta(s) registrada(s)</span></div>
+</div>
+
+@if (!Model.Consultas.Any())
+{
+    <div class="app-card"><div class="empty-state">📭 Este paciente no tiene consultas registradas aún.</div></div>
+}
+
+@foreach (var c in Model.Consultas)
+{
+    <div class="consulta-card">
+        <div class="consulta-header">
+            <div class="consulta-fecha">📅 @c.FechaConsulta.ToString("dddd dd/MM/yyyy 'a las' HH:mm", new System.Globalization.CultureInfo("es-AR"))</div>
+            <div class="consulta-medico">@c.MedicoNombre</div>
+        </div>
+        <div class="consulta-body">
+            <div class="consulta-section">
+                <div class="consulta-label">🔬 Diagnóstico</div>
+                <div class="consulta-text">@c.Diagnostico</div>
+            </div>
+            @if (!string.IsNullOrEmpty(c.Observaciones))
+            {
+                <div class="consulta-section">
+                    <div class="consulta-label">🔍 Observaciones</div>
+                    <div class="consulta-text">@c.Observaciones</div>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(c.Indicaciones))
+            {
+                <div class="consulta-section">
+                    <div class="consulta-label">💊 Indicaciones</div>
+                    <div class="consulta-text">@c.Indicaciones</div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div style="margin-top:1.5rem;">
+    <a asp-action="Dashboard" style="color:#64748b;text-decoration:none;font-size:0.875rem;">← Volver al panel</a>
+</div>

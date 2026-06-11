@@ -1,0 +1,132 @@
+@model SistemaSaludGoya.ViewModel.RecepcionistaDashboardVM
+@{
+    ViewData["Title"] = "Panel Recepcionista";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .page-tag { display:inline-block; background:#e8f5e9; color:#2e7d32; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .page-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; }
+    .filtros-bar { background:white; border-radius:14px; padding:1rem 1.25rem; box-shadow:0 4px 20px rgba(0,0,0,0.05); margin-bottom:1.5rem; display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; }
+    .filtro-group { display:flex; flex-direction:column; gap:0.3rem; }
+    .filtro-label { font-size:0.75rem; font-weight:600; color:#64748b; text-transform:uppercase; }
+    .filtro-input { padding:0.5rem 0.8rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.875rem; outline:none; }
+    .filtro-input:focus { border-color:#2e7d32; }
+    .btn-filtrar { background:#2e7d32; color:white; border:none; padding:0.55rem 1.2rem; border-radius:8px; font-weight:600; font-size:0.875rem; cursor:pointer; }
+    .stats-mini { display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .stat-mini { background:white; border-radius:12px; padding:0.75rem 1.25rem; box-shadow:0 2px 10px rgba(0,0,0,0.05); display:flex; align-items:center; gap:0.75rem; }
+    .stat-mini-num { font-size:1.5rem; font-weight:800; }
+    .stat-mini-label { font-size:0.75rem; color:#64748b; font-weight:600; text-transform:uppercase; }
+    .turno-row { display:flex; align-items:center; gap:1rem; padding:0.9rem 1rem; border-bottom:1px solid #f0f4f7; }
+    .turno-row:last-child { border-bottom:none; }
+    .turno-row:hover { background:#f8fafc; }
+    .turno-hora { font-size:0.9rem; font-weight:800; color:#1a3a4f; min-width:52px; }
+    .turno-info { flex:1; }
+    .turno-info strong { display:block; font-size:0.875rem; color:#1a3a4f; }
+    .turno-info small { font-size:0.78rem; color:#64748b; }
+    .badge { padding:0.25rem 0.65rem; border-radius:20px; font-size:0.7rem; font-weight:700; text-transform:uppercase; }
+    .badge-solicitado { background:#fff3e0; color:#e65100; }
+    .badge-confirmado  { background:#e8f5e9; color:#2e7d32; }
+    .badge-atendido    { background:#ede7f6; color:#6a1b9a; }
+    .badge-cancelado   { background:#ffebee; color:#c62828; }
+    .btn-cancelar-small { background:#ffebee; color:#c62828; border:1.5px solid #fca5a5; padding:0.3rem 0.75rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.15s; }
+    .btn-cancelar-small:hover { background:#c62828; color:white; }
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center; }
+    .modal-overlay.active { display:flex; }
+    .modal-box { background:white; border-radius:16px; padding:2rem; max-width:420px; width:90%; }
+    .modal-title { font-size:1.1rem; font-weight:700; margin-bottom:0.5rem; color:#1a3a4f; }
+    .modal-sub { font-size:0.875rem; color:#64748b; margin-bottom:1rem; }
+    .modal-textarea { width:100%; border:1.5px solid #e2e8f0; border-radius:10px; padding:0.75rem; font-size:0.875rem; resize:none; outline:none; }
+    .modal-actions { display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem; }
+    .btn-m-close { background:#f1f5f9; color:#374151; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:600; cursor:pointer; }
+    .btn-m-red   { background:#c62828; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:600; cursor:pointer; }
+</style>
+
+@if (TempData["Success"] != null) { <div class="alert-app-success">✅ @TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;padding:0.75rem 1rem;color:#c62828;margin-bottom:1rem;">⚠️ @TempData["Error"]</div> }
+
+<span class="page-tag">🗂️ Recepción</span>
+<h1 class="page-title" style="margin-bottom:1.5rem;">Todos los turnos</h1>
+
+<form method="get" asp-action="Dashboard">
+    <div class="filtros-bar">
+        <div class="filtro-group">
+            <label class="filtro-label">Fecha</label>
+            <input type="date" name="fecha" class="filtro-input" value="@Model.FechaFiltro.ToString("yyyy-MM-dd")" id="filtro-fecha" />
+        </div>
+        <div class="filtro-group">
+            <label class="filtro-label">Estado</label>
+            <select name="estado" class="filtro-input" id="filtro-estado">
+                <option value="">Todos</option>
+                @if (Model.FiltroEstado == "Solicitado") { <option value="Solicitado" selected>Pendiente</option> }
+                else { <option value="Solicitado">Pendiente</option> }
+                @if (Model.FiltroEstado == "Confirmado") { <option value="Confirmado" selected>Confirmado</option> }
+                else { <option value="Confirmado">Confirmado</option> }
+                @if (Model.FiltroEstado == "Atendido") { <option value="Atendido" selected>Atendido</option> }
+                else { <option value="Atendido">Atendido</option> }
+                @if (Model.FiltroEstado == "Cancelado") { <option value="Cancelado" selected>Cancelado</option> }
+                else { <option value="Cancelado">Cancelado</option> }
+            </select>
+        </div>
+        <button type="submit" class="btn-filtrar" id="btn-filtrar">🔍 Filtrar</button>
+    </div>
+</form>
+
+<div class="stats-mini">
+    <div class="stat-mini"><span style="font-size:1.3rem;">📋</span><div><div class="stat-mini-num">@Model.TotalTurnos</div><div class="stat-mini-label">Total</div></div></div>
+    <div class="stat-mini"><span style="font-size:1.3rem;">⏳</span><div><div class="stat-mini-num" style="color:#e65100;">@Model.TurnosPendientes</div><div class="stat-mini-label">Pendientes</div></div></div>
+    <div class="stat-mini"><span style="font-size:1.3rem;">✅</span><div><div class="stat-mini-num" style="color:#2e7d32;">@Model.TurnosConfirmados</div><div class="stat-mini-label">Confirmados</div></div></div>
+    <div class="stat-mini"><span style="font-size:1.3rem;">❌</span><div><div class="stat-mini-num" style="color:#c62828;">@Model.TurnosCancelados</div><div class="stat-mini-label">Cancelados</div></div></div>
+</div>
+
+<div class="app-card">
+    <div class="app-card-header"><span>📋</span><h4>Turnos del @Model.FechaFiltro.ToString("dd/MM/yyyy")</h4></div>
+    <div class="app-card-body" style="padding:0;">
+        @if (!Model.Turnos.Any())
+        {
+            <div style="text-align:center;padding:2.5rem;color:#94a3b8;">📭 Sin turnos para esta fecha/filtro</div>
+        }
+        @foreach (var t in Model.Turnos)
+        {
+            var badgeClass = t.Estado.ToLower() switch {
+                "solicitado" => "badge-solicitado", "confirmado" => "badge-confirmado",
+                "atendido"   => "badge-atendido",   _ => "badge-cancelado" };
+            var puedeCancel = t.Estado != "Cancelado" && t.Estado != "Atendido";
+            <div class="turno-row">
+                <div class="turno-hora">@t.FechaHora.ToString("HH:mm")</div>
+                <div class="turno-info">
+                    <strong>@t.PacienteNombre</strong>
+                    <small>@t.MedicoNombre</small>
+                </div>
+                <span class="badge @badgeClass">@(t.Estado == "Solicitado" ? "Pendiente" : t.Estado)</span>
+                @if (puedeCancel)
+                {
+                    <button class="btn-cancelar-small" id="btn-cancel-recep-@t.IdTurno" onclick="abrirCancelar(@t.IdTurno)">✕ Cancelar</button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalCancelar">
+    <div class="modal-box">
+        <div class="modal-title">✕ Cancelar turno</div>
+        <p class="modal-sub">El motivo es <strong>obligatorio</strong>.</p>
+        <form method="post" asp-action="Cancelar" id="formCancelar">
+            <input type="hidden" name="id" id="cancelarId" />
+            <input type="hidden" name="fecha" value="@Model.FechaFiltro.ToString("yyyy-MM-dd")" />
+            <textarea name="motivo" class="modal-textarea" rows="3" placeholder="Motivo de cancelación..." required></textarea>
+            <div class="modal-actions">
+                <button type="button" class="btn-m-close" onclick="cerrarModal()">Volver</button>
+                <button type="submit" class="btn-m-red" id="btn-confirm-cancel-recep">Confirmar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function abrirCancelar(id) { document.getElementById('cancelarId').value = id; document.getElementById('modalCancelar').classList.add('active'); }
+    function cerrarModal() { document.getElementById('modalCancelar').classList.remove('active'); }
+    document.getElementById('modalCancelar').addEventListener('click', e => { if (e.target === document.getElementById('modalCancelar')) cerrarModal(); });
+</script>
+}

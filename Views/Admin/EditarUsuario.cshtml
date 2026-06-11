@@ -1,0 +1,120 @@
+@model SistemaSaludGoya.ViewModel.EditarUsuarioVM
+@{
+    ViewData["Title"] = "Editar Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool esMedico = Model.Rol == "Medico";
+}
+<style>
+    .page-tag { display:inline-block; background:#fce4ec; color:#c62828; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .page-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; margin-bottom:0.2rem; }
+    .form-label { font-size:0.82rem; font-weight:600; color:#374151; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:0.4rem; }
+    .form-control { width:100%; padding:0.65rem 0.9rem; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.9rem; outline:none; transition:border 0.18s; }
+    .form-control:focus { border-color:#c62828; box-shadow:0 0 0 3px rgba(198,40,40,0.1); }
+    .form-group { margin-bottom:1.25rem; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    @@media(max-width:600px){ .form-grid{grid-template-columns:1fr;} }
+    .pass-hint { font-size:0.78rem; color:#94a3b8; margin-top:0.3rem; }
+    .rol-badge { display:inline-block; padding:0.25rem 0.75rem; border-radius:20px; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-bottom:1.25rem; }
+    .rol-medico { background:#ede7f6; color:#6a1b9a; }
+    .rol-paciente { background:#e3f2fd; color:#1565c0; }
+    .rol-recepcionista { background:#e8f5e9; color:#2e7d32; }
+    .rol-administrador { background:#fce4ec; color:#c62828; }
+    .btn-guardar { background:#c62828; color:white; border:none; padding:0.75rem 2rem; border-radius:12px; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.18s; }
+    .btn-guardar:hover { background:#8b0000; }
+    .btn-volver { color:#64748b; font-size:0.875rem; text-decoration:none; margin-left:1rem; }
+    .section-title { font-size:0.9rem; font-weight:700; color:#374151; margin-bottom:0.75rem; padding-bottom:0.4rem; border-bottom:2px solid #f0f4f7; }
+    .esp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:0.5rem; }
+    .esp-label { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 0.75rem; border:1.5px solid #e2e8f0; border-radius:8px; cursor:pointer; font-size:0.875rem; transition:border-color 0.15s; }
+    .esp-label:has(input:checked) { border-color:#6a1b9a; background:#f5f0fb; }
+    .required-mark { color:#c62828; }
+</style>
+
+<span class="page-tag">✏️ Editar Usuario</span>
+<h1 class="page-title">Editar datos del usuario</h1>
+
+<div class="app-card" style="margin-top:1.5rem;">
+    <div class="app-card-header"><span>👤</span><h4>@Model.Nombre @Model.Apellido</h4></div>
+    <div class="app-card-body">
+        <span class="rol-badge rol-@(Model.Rol.ToLower())">@Model.Rol</span>
+
+        <form method="post" asp-action="EditarUsuario">
+            <input type="hidden" asp-for="IdUsuario" />
+            <input type="hidden" asp-for="Rol" />
+
+            <div class="section-title">📋 Datos personales</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Nombre <span class="required-mark">*</span></label>
+                    <input asp-for="Nombre" class="form-control" id="edit-nombre" />
+                    <span asp-validation-for="Nombre" style="color:#c62828;font-size:0.8rem;"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apellido <span class="required-mark">*</span></label>
+                    <input asp-for="Apellido" class="form-control" id="edit-apellido" />
+                    <span asp-validation-for="Apellido" style="color:#c62828;font-size:0.8rem;"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email <span class="required-mark">*</span></label>
+                <input asp-for="Email" type="email" class="form-control" id="edit-email" />
+                <span asp-validation-for="Email" style="color:#c62828;font-size:0.8rem;"></span>
+            </div>
+
+            <div class="section-title" style="margin-top:1.5rem;">🔒 Cambiar contraseña</div>
+            <div class="form-group">
+                <label class="form-label">Nueva contraseña</label>
+                <input asp-for="NuevaPassword" type="password" class="form-control" placeholder="Dejá vacío para no cambiar" id="edit-password" />
+                <p class="pass-hint">Si dejás este campo vacío, la contraseña actual no se modifica.</p>
+                <span asp-validation-for="NuevaPassword" style="color:#c62828;font-size:0.8rem;"></span>
+            </div>
+
+            @if (esMedico)
+            {
+                <div class="section-title" style="margin-top:1.5rem;">🩺 Datos médicos</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Matrícula</label>
+                        <input asp-for="Matricula" class="form-control" placeholder="MP-12345" id="edit-matricula" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input asp-for="Telefono" class="form-control" placeholder="+54 9 ..." id="edit-telefono" />
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:1.25rem;">📋 Especialidades</div>
+                @if (!Model.Especialidades.Any())
+                {
+                    <p style="color:#94a3b8;font-size:0.875rem;">No hay especialidades en el sistema.</p>
+                }
+                else
+                {
+                    <div class="esp-grid" style="margin-bottom:1.25rem;">
+                        @foreach (var esp in Model.Especialidades)
+                        {
+                            bool selec = Model.EspecialidadesSeleccionadas.Contains(esp.IdEspecialidad);
+                            <label class="esp-label" id="lbl-esp-@esp.IdEspecialidad">
+                                <input type="checkbox"
+                                       name="EspecialidadesSeleccionadas"
+                                       value="@esp.IdEspecialidad"
+                                       id="chk-esp-@esp.IdEspecialidad"
+                                       style="accent-color:#6a1b9a;"
+                                       @(selec ? "checked" : "") />
+                                @esp.Nombre
+                            </label>
+                        }
+                    </div>
+                }
+            }
+
+            <div style="display:flex;align-items:center;margin-top:0.5rem;">
+                <button type="submit" class="btn-guardar" id="btn-guardar-usuario">💾 Guardar cambios</button>
+                <a asp-action="Dashboard" class="btn-volver">← Volver</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

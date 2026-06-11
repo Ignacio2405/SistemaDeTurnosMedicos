@@ -1,0 +1,78 @@
+@model SistemaSaludGoya.ViewModel.AdminDashboardVM
+@{
+    ViewData["Title"] = "Panel Administrador";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .page-tag { display:inline-block; background:#fce4ec; color:#c62828; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .page-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; }
+    .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:2rem; }
+    @@media(max-width:700px){ .stats-grid{grid-template-columns:1fr 1fr;} }
+    .stat-card { background:white; border-radius:16px; padding:1.25rem 1rem; box-shadow:0 4px 20px rgba(0,0,0,0.06); display:flex; flex-direction:column; align-items:center; text-align:center; }
+    .stat-number { font-size:2.4rem; font-weight:800; }
+    .stat-label  { font-size:0.74rem; font-weight:600; text-transform:uppercase; color:#64748b; margin-top:0.25rem; }
+    .stat-icon   { font-size:1.8rem; margin-bottom:0.4rem; }
+
+    .usuario-row { display:flex; align-items:center; gap:1rem; padding:0.9rem 1rem; border-bottom:1px solid #f0f4f7; }
+    .usuario-row:last-child { border-bottom:none; }
+    .usuario-row:hover { background:#f8fafc; }
+    .usuario-avatar { width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#c62828,#8b0000); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; flex-shrink:0; }
+    .usuario-info { flex:1; }
+    .usuario-info strong { display:block; font-size:0.875rem; color:#1a3a4f; }
+    .usuario-info small { font-size:0.78rem; color:#64748b; }
+    .badge-rol { padding:0.25rem 0.65rem; border-radius:20px; font-size:0.7rem; font-weight:700; text-transform:uppercase; }
+    .rol-paciente      { background:#e3f2fd; color:#1565c0; }
+    .rol-medico        { background:#ede7f6; color:#6a1b9a; }
+    .rol-recepcionista { background:#e8f5e9; color:#2e7d32; }
+    .rol-administrador { background:#fce4ec; color:#c62828; }
+    .rol-sinrol        { background:#f1f5f9; color:#64748b; }
+    .btn-aprobar { background:#e8f5e9; color:#2e7d32; border:1.5px solid #a5d6a7; padding:0.3rem 0.75rem; border-radius:8px; font-size:0.78rem; font-weight:600; text-decoration:none; }
+    .btn-aprobar:hover { background:#2e7d32; color:white; text-decoration:none; }
+    .badge-pendiente { background:#fff3e0; color:#e65100; border-radius:8px; padding:0.2rem 0.5rem; font-size:0.72rem; font-weight:700; }
+</style>
+
+@if (TempData["Success"] != null) { <div class="alert-app-success">✅ @TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;padding:0.75rem;color:#c62828;margin-bottom:1rem;">⚠️ @TempData["Error"]</div> }
+
+<span class="page-tag">⚙️ Administrador</span>
+<h1 class="page-title" style="margin-bottom:1.5rem;">Panel de control</h1>
+
+<div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-number" style="color:#1565c0;">@Model.TotalPacientes</div><div class="stat-label">Pacientes</div></div>
+    <div class="stat-card"><div class="stat-icon">🩺</div><div class="stat-number" style="color:#6a1b9a;">@Model.TotalMedicos</div><div class="stat-label">Médicos</div></div>
+    <div class="stat-card"><div class="stat-icon">🗂️</div><div class="stat-number" style="color:#2e7d32;">@Model.TotalRecepcionistas</div><div class="stat-label">Recepcionistas</div></div>
+    <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-number" style="color:#1a3a4f;">@Model.TurnosHoy</div><div class="stat-label">Turnos hoy</div></div>
+    <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-number" style="color:#1a3a4f;">@Model.TurnosMes</div><div class="stat-label">Turnos este mes</div></div>
+</div>
+
+<div class="app-card">
+    <div class="app-card-header"><span>👥</span><h4>Todos los usuarios</h4></div>
+    <div class="app-card-body" style="padding:0;">
+        @foreach (var u in Model.TodosUsuarios)
+        {
+            var ini = $"{u.NombreCompleto.Split(' ').FirstOrDefault()?[0]}{(u.NombreCompleto.Split(' ').Length > 1 ? u.NombreCompleto.Split(' ')[1][0].ToString() : "")}".ToUpper();
+            var rolClass = u.Rol switch {
+                "Paciente"      => "rol-paciente",
+                "Medico"        => "rol-medico",
+                "Recepcionista" => "rol-recepcionista",
+                "Administrador" => "rol-administrador",
+                _               => "rol-sinrol" };
+            <div class="usuario-row">
+                <div class="usuario-avatar" style="@(u.Activo ? "" : "opacity:0.4;")">@ini</div>
+                <div class="usuario-info">
+                    <strong>@u.NombreCompleto @(u.Matricula != null ? $"(Mat. {u.Matricula})" : "")</strong>
+                    <small>@u.Email @(!u.Activo ? "· ⛔ Desactivado" : "")</small>
+                </div>
+                <span class="badge-rol @rolClass">@u.Rol</span>
+                <a asp-action="EditarUsuario" asp-route-idUsuario="@u.IdUsuario"
+                   style="background:#e3f2fd;color:#1565c0;border:1.5px solid #90caf9;padding:0.3rem 0.65rem;border-radius:8px;font-size:0.75rem;font-weight:600;text-decoration:none;"
+                   id="btn-editar-@u.IdUsuario" title="Editar">✏️</a>
+                <form method="post" asp-action="DesactivarUsuario" asp-route-idUsuario="@u.IdUsuario" style="display:inline;">
+                    <button type="submit" style="background:none;border:none;cursor:pointer;font-size:1.1rem;padding:0.25rem;" title="@(u.Activo ? "Desactivar" : "Activar")" id="btn-toggle-@u.IdUsuario">
+                        @(u.Activo ? "🔒" : "🔓")
+                    </button>
+                </form>
+            </div>
+        }
+    </div>
+</div>

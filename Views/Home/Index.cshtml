@@ -1,8 +1,189 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model SistemaSaludGoya.ViewModel.HomeDashboardVM
+@{
+    ViewData["Title"] = "Mi Panel";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="text-center text-black">
-    <h1 class="display-4">Bienvenidos a Sistema de Salud Goya</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .dashboard-greeting { margin-bottom: 2rem; }
+    .greeting-tag { display:inline-block; background:#E5ECF0; color:#2A6F97; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .greeting-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; letter-spacing:-0.5px; }
+    .greeting-title span { color:#2A6F97; }
+    .greeting-sub { font-size:0.9rem; color:#64748b; margin-top:0.25rem; }
+
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem; }
+    @@media(max-width:768px){ .stats-grid{grid-template-columns:repeat(2,1fr);} }
+    @@media(max-width:480px){ .stats-grid{grid-template-columns:1fr;} }
+
+    .stat-card {
+        background:white; border-radius:16px; padding:1.25rem 1rem;
+        box-shadow:0 4px 20px rgba(42,111,151,0.07);
+        border:1px solid rgba(42,111,151,0.07);
+        display:flex; flex-direction:column; align-items:center; text-align:center;
+        transition:transform 0.18s, box-shadow 0.18s;
+    }
+    .stat-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(42,111,151,0.13); }
+    .stat-icon { font-size:1.8rem; margin-bottom:0.5rem; }
+    .stat-number { font-size:2.4rem; font-weight:800; letter-spacing:-1px; line-height:1; }
+    .stat-label { font-size:0.74rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-top:0.25rem; color:#64748b; }
+    .stat-card.pendiente .stat-number { color:#f57f17; }
+    .stat-card.confirmado .stat-number { color:#2e7d32; }
+    .stat-card.atendido   .stat-number { color:#2A6F97; }
+    .stat-card.cancelado  .stat-number { color:#c62828; }
+
+    .dashboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+    @@media(max-width:700px){ .dashboard-grid{grid-template-columns:1fr;} }
+
+    .proximo-turno-banner {
+        background:linear-gradient(135deg,#2A6F97,#1a4f6e);
+        color:white; border-radius:16px; padding:1.5rem;
+        display:flex; align-items:center; gap:1rem;
+        margin-bottom:2rem;
+        box-shadow:0 6px 20px rgba(42,111,151,0.3);
+    }
+    .banner-icon { font-size:2.2rem; flex-shrink:0; }
+    .banner-text h3 { font-size:1rem; font-weight:700; margin-bottom:0.2rem; }
+    .banner-text p  { font-size:0.86rem; opacity:0.88; margin:0; }
+
+    .quick-action-btn {
+        display:flex; align-items:center; gap:0.8rem;
+        padding:1rem 1.2rem; border-radius:12px;
+        text-decoration:none; transition:all 0.18s;
+        font-weight:600; font-size:0.9rem;
+    }
+    .quick-action-btn:hover { transform:translateX(4px); text-decoration:none; }
+    .quick-action-btn.primary { background:#2A6F97; color:white; box-shadow:0 4px 14px rgba(42,111,151,0.3); }
+    .quick-action-btn.primary:hover { background:#1a4f6e; color:white; }
+    .quick-action-btn.secondary { background:white; color:#2A6F97; border:1.5px solid #2A6F97; }
+    .quick-action-btn.secondary:hover { background:#eef5fa; color:#1a4f6e; }
+    .quick-action-btn.tertiary { background:#f7fafc; color:#64748b; border:1px solid #e2e8f0; }
+    .quick-action-btn.tertiary:hover { background:#E5ECF0; color:#1a3a4f; }
+    .action-icon { font-size:1.3rem; }
+
+    .profile-info-item { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 0; border-bottom:1px solid #f0f4f7; font-size:0.87rem; }
+    .profile-info-item:last-child { border-bottom:none; }
+    .profile-info-icon { width:28px; height:28px; border-radius:7px; background:#E5ECF0; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; }
+    .profile-info-value { color:#1a3a4f; font-weight:500; }
+    .profile-info-empty { color:#94a3b8; font-style:italic; }
+</style>
+
+@if (TempData["PerfilExito"] != null)
+{
+    <div class="alert-app-success">✅ @TempData["PerfilExito"]</div>
+}
+
+<!-- Saludo -->
+<div class="dashboard-greeting">
+    <span class="greeting-tag">🏥 Sistema Salud Goya</span>
+    <h1 class="greeting-title">Hola, <span>@(Model.NombreCompleto.Split(' ').FirstOrDefault() ?? Model.NombreCompleto)</span> 👋</h1>
+    <p class="greeting-sub">@DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-AR"))</p>
+</div>
+
+<!-- Banner próximo turno -->
+@if (Model.ProximoTurno.HasValue)
+{
+    <div class="proximo-turno-banner">
+        <div class="banner-icon">📅</div>
+        <div class="banner-text">
+            <h3>Próximo turno: @Model.ProximoTurno.Value.ToString("dddd dd/MM 'a las' HH:mm", new System.Globalization.CultureInfo("es-AR"))</h3>
+            <p>@Model.ProximoTurnoMedico</p>
+        </div>
+    </div>
+}
+
+<!-- Stats -->
+<div class="stats-grid">
+    <div class="stat-card pendiente">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-number">@Model.TurnosPendientes</div>
+        <div class="stat-label">Pendientes</div>
+    </div>
+    <div class="stat-card confirmado">
+        <div class="stat-icon">✅</div>
+        <div class="stat-number">@Model.TurnosConfirmados</div>
+        <div class="stat-label">Confirmados</div>
+    </div>
+    <div class="stat-card atendido">
+        <div class="stat-icon">🩺</div>
+        <div class="stat-number">@Model.TurnosAtendidos</div>
+        <div class="stat-label">Atendidos</div>
+    </div>
+    <div class="stat-card cancelado">
+        <div class="stat-icon">❌</div>
+        <div class="stat-number">@Model.TurnosCancelados</div>
+        <div class="stat-label">Cancelados</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Acciones rápidas -->
+    <div class="app-card">
+        <div class="app-card-header">
+            <span>⚡</span>
+            <h4>Acciones rápidas</h4>
+        </div>
+        <div class="app-card-body" style="display:flex;flex-direction:column;gap:0.6rem;">
+            <a asp-controller="Turnos" asp-action="Create" class="quick-action-btn primary" id="btn-nuevo-turno">
+                <span class="action-icon">📅</span>
+                <div>
+                    <div>Solicitar nuevo turno</div>
+                    <div style="font-size:0.75rem;opacity:0.75;font-weight:400;">Elegí especialidad, médico y horario</div>
+                </div>
+            </a>
+            <a asp-controller="Turnos" asp-action="Index" class="quick-action-btn secondary" id="btn-mis-turnos">
+                <span class="action-icon">📋</span>
+                <div>
+                    <div>Ver mis turnos</div>
+                    <div style="font-size:0.75rem;color:#64748b;font-weight:400;">Total: @Model.TurnosTotal turnos</div>
+                </div>
+            </a>
+            <a asp-controller="Perfil" asp-action="Editar" class="quick-action-btn tertiary" id="btn-perfil">
+                <span class="action-icon">👤</span>
+                <div>Editar mi perfil</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Mi perfil resumen -->
+    <div class="app-card">
+        <div class="app-card-header">
+            <span>👤</span>
+            <h4>Mi perfil</h4>
+            <a asp-controller="Perfil" asp-action="Editar" style="margin-left:auto;font-size:0.78rem;color:#2A6F97;text-decoration:none;font-weight:600;">Editar →</a>
+        </div>
+        <div class="app-card-body">
+            <div class="profile-info-item">
+                <div class="profile-info-icon">📧</div>
+                <span class="profile-info-value">@Model.Email</span>
+            </div>
+            <div class="profile-info-item">
+                <div class="profile-info-icon">📞</div>
+                @if (!string.IsNullOrEmpty(Model.Telefono))
+                { <span class="profile-info-value">@Model.Telefono</span> }
+                else
+                { <span class="profile-info-empty">Sin teléfono cargado</span> }
+            </div>
+            <div class="profile-info-item">
+                <div class="profile-info-icon">📍</div>
+                @if (!string.IsNullOrEmpty(Model.Direccion))
+                { <span class="profile-info-value">@Model.Direccion</span> }
+                else
+                { <span class="profile-info-empty">Sin dirección cargada</span> }
+            </div>
+            <div class="profile-info-item">
+                <div class="profile-info-icon">🪪</div>
+                @if (!string.IsNullOrEmpty(Model.Dni))
+                { <span class="profile-info-value">DNI: @Model.Dni</span> }
+                else
+                { <span class="profile-info-empty">Sin DNI cargado</span> }
+            </div>
+            @if (Model.FechaNacimiento.HasValue)
+            {
+                <div class="profile-info-item">
+                    <div class="profile-info-icon">🎂</div>
+                    <span class="profile-info-value">@Model.FechaNacimiento.Value.ToString("dd/MM/yyyy")</span>
+                </div>
+            }
+        </div>
+    </div>
 </div>
