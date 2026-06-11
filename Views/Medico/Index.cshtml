@@ -1,0 +1,49 @@
+﻿@model IEnumerable<SistemaSaludGoya.Models.Medico>
+
+@{
+    ViewData["Title"] = "Listado de Médicos";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Listado de Médicos</h2>
+        <a asp-action="Create" class="btn btn-primary">Agregar Nuevo Médico</a>
+    </div>
+
+    <table class="table table-striped table-hover border">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Matrícula</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var medico in Model)
+                {
+                    <tr>
+                        <td>@medico.IdMedico</td>
+
+                        <td>@medico.Usuario.Nombre</td>
+                        <td>@medico.Usuario.Apellido</td>
+
+                        <td>@medico.Matricula</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@medico.IdMedico" class="btn btn-info btn-sm text-white">Ver Detalles</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No hay médicos registrados en el sistema actualmente.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
