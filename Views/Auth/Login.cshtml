@@ -1,63 +1,63 @@
-﻿@using SistemaSaludGoya.ViewModel
-@model LoginVM
-
+@model SistemaSaludGoya.ViewModel.LoginVM
 @{
     ViewData["Title"] = "Iniciar Sesión";
+    Layout = "~/Views/Shared/_LayoutAuth.cshtml";
 }
 
-<div class="row justify-content-center p-5">
-    <div class="col-md-5 text-black text-center">
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <img src="~/Images/logoNegro.png" class="auth-logo-img" alt="Sistema Salud Goya" />
+            <span class="auth-tag">Portal Médico</span>
+            <h1 class="auth-title">Bienvenido</h1>
+            <p class="auth-subtitle">Ingresá tus credenciales para continuar</p>
+        </div>
 
-        <div class="login">
-        <h2 class="mb-4 text-black text-center">Iniciar Sesión</h2>
-       
-        <form asp-controller="Auth"
-              asp-action="Login"
-              method="post">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert-success-custom">✅ @TempData["Success"]</div>
+        }
 
-            <div asp-validation-summary="ModelOnly"
-                 class="text-danger mb-3">
+        <form asp-action="Login" method="post">
+            <div class="alert-error-custom">
+                @Html.ValidationSummary(true, "", new { @class = "" })
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Email"
-                       class="form-label">
-                </label>
-
-                <input asp-for="Email"
-                       class="form-control" />
-
-                <span asp-validation-for="Email"
-                      class="text-danger">
-                </span>
+            <div class="form-group-custom">
+                <label class="form-label-custom">Correo electrónico</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">✉️</span>
+                    <input asp-for="Email" type="email" class="form-input-custom" placeholder="nombre@email.com" id="login-email" autocomplete="email" />
+                </div>
+                <span asp-validation-for="Email" class="validation-msg"></span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Password"
-                       class="form-label">
-                </label>
-
-                <input asp-for="Password"
-                       type="password"
-                       class="form-control" />
-
-                <span asp-validation-for="Password"
-                      class="text-danger">
-                </span>
+            <div class="form-group-custom">
+                <label class="form-label-custom">Contraseña</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input asp-for="Password" type="password" class="form-input-custom" placeholder="Tu contraseña" id="login-password" autocomplete="current-password" />
+                </div>
+                <span asp-validation-for="Password" class="validation-msg"></span>
             </div>
 
-            <button type="submit"
-                    class="btn btn-primary w-100">
-                Ingresar
-            </button>
-
+            <div class="auth-actions">
+                <button type="submit" class="btn-auth-primary" id="btn-login">
+                    🚀 Iniciar sesión
+                </button>
+                <div class="auth-divider"><span>¿No tenés cuenta?</span></div>
+                <a asp-action="Register" class="btn-auth-secondary" id="link-register">
+                    📝 Registrarse como paciente
+                </a>
+            </div>
         </form>
+
+        <div class="auth-form-footer">
+            Sistema de Salud Goya &mdash; Todos los derechos reservados
         </div>
     </div>
 </div>
 
-@section Scripts
-{
-    <partial name="_ValidationScriptsPartial" />
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
-**

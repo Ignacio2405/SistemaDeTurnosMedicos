@@ -1,0 +1,70 @@
+@model SistemaSaludGoya.ViewModel.ConsultaVM
+@{
+    ViewData["Title"] = "Atender Turno";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .page-tag { display:inline-block; background:#ede7f6; color:#6a1b9a; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .page-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; letter-spacing:-0.5px; margin-bottom:0.2rem; }
+    .paciente-banner { background:linear-gradient(135deg,#6a1b9a,#4a148c); color:white; border-radius:16px; padding:1.5rem; display:flex; align-items:center; gap:1.25rem; margin-bottom:1.5rem; }
+    .paciente-avatar { width:56px; height:56px; border-radius:14px; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:800; }
+    .form-label { font-size:0.82rem; font-weight:600; color:#374151; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:0.4rem; }
+    .form-control { width:100%; padding:0.65rem 0.9rem; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.9rem; outline:none; transition:border 0.18s; }
+    .form-control:focus { border-color:#6a1b9a; box-shadow:0 0 0 3px rgba(106,27,154,0.1); }
+    .form-group { margin-bottom:1.25rem; }
+    .btn-guardar { background:#6a1b9a; color:white; border:none; padding:0.75rem 2rem; border-radius:12px; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.18s; }
+    .btn-guardar:hover { background:#4a148c; }
+    .btn-volver { color:#64748b; font-size:0.875rem; text-decoration:none; margin-left:1rem; }
+    .required-mark { color:#c62828; }
+    .val-msg { color:#c62828; font-size:0.8rem; margin-top:0.25rem; }
+</style>
+
+<span class="page-tag">🩺 Atender Turno</span>
+<h1 class="page-title">Registrar consulta</h1>
+
+<div class="paciente-banner">
+    <div class="paciente-avatar">👤</div>
+    <div>
+        <div style="font-size:1.1rem;font-weight:800;">@Model.PacienteNombre</div>
+        <div style="opacity:0.85;font-size:0.85rem;">DNI: @Model.PacienteDni &mdash; @Model.FechaHora.ToString("dd/MM/yyyy HH:mm") hs</div>
+        @if (!string.IsNullOrEmpty(Model.MotivoConsulta))
+        { <div style="opacity:0.75;font-size:0.8rem;margin-top:0.25rem;">💬 @Model.MotivoConsulta</div> }
+    </div>
+</div>
+
+<div class="app-card">
+    <div class="app-card-header"><span>📝</span><h4>Datos de la consulta</h4></div>
+    <div class="app-card-body">
+        <form method="post" asp-action="GuardarConsulta">
+            <input type="hidden" asp-for="IdTurno" />
+            <input type="hidden" asp-for="PacienteNombre" />
+            <input type="hidden" asp-for="PacienteDni" />
+            <input type="hidden" asp-for="FechaHora" />
+
+            <div class="form-group">
+                <label class="form-label" asp-for="Diagnostico">Diagnóstico <span class="required-mark">*</span></label>
+                <textarea asp-for="Diagnostico" class="form-control" rows="4" placeholder="Describí el diagnóstico del paciente..." required></textarea>
+                <span asp-validation-for="Diagnostico" class="val-msg"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="Observaciones">Observaciones clínicas</label>
+                <textarea asp-for="Observaciones" class="form-control" rows="3" placeholder="Signos vitales, examen físico, etc. (opcional)"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="Indicaciones">Indicaciones y tratamiento</label>
+                <textarea asp-for="Indicaciones" class="form-control" rows="3" placeholder="Medicación, reposo, indicaciones para el paciente (opcional)"></textarea>
+            </div>
+
+            <div style="display:flex;align-items:center;">
+                <button type="submit" class="btn-guardar" id="btn-guardar-consulta">💾 Guardar y marcar como atendido</button>
+                <a asp-action="Dashboard" class="btn-volver">← Volver</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

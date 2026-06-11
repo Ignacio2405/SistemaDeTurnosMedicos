@@ -1,0 +1,169 @@
+@model SistemaSaludGoya.ViewModel.MedicoDashboardVM
+@{
+    ViewData["Title"] = "Panel Médico";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .medico-header { margin-bottom:2rem; }
+    .medico-tag { display:inline-block; background:#e3f2fd; color:#1565c0; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .medico-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; letter-spacing:-0.5px; }
+    .medico-sub { font-size:0.9rem; color:#64748b; margin-top:0.2rem; }
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem; }
+    @@media(max-width:768px){ .stats-grid{grid-template-columns:repeat(2,1fr);} }
+    .stat-card { background:white; border-radius:16px; padding:1.25rem 1rem; box-shadow:0 4px 20px rgba(0,0,0,0.06); border:1px solid #f0f4f7; display:flex; flex-direction:column; align-items:center; text-align:center; transition:transform 0.18s; }
+    .stat-card:hover { transform:translateY(-3px); }
+    .stat-icon { font-size:1.8rem; margin-bottom:0.5rem; }
+    .stat-number { font-size:2.4rem; font-weight:800; letter-spacing:-1px; line-height:1; }
+    .stat-label { font-size:0.74rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-top:0.25rem; color:#64748b; }
+    .stat-card.hoy .stat-number { color:#1565c0; }
+    .stat-card.pendiente .stat-number { color:#f57f17; }
+    .stat-card.confirmado .stat-number { color:#2e7d32; }
+    .stat-card.atendido .stat-number { color:#6a1b9a; }
+
+    .turno-row { display:flex; align-items:center; gap:1rem; padding:0.9rem 1rem; border-bottom:1px solid #f0f4f7; transition:background 0.15s; }
+    .turno-row:last-child { border-bottom:none; }
+    .turno-row:hover { background:#f8fafc; }
+    .turno-hora { font-size:1rem; font-weight:800; color:#1a3a4f; min-width:52px; }
+    .turno-paciente { flex:1; }
+    .turno-paciente strong { display:block; font-size:0.9rem; color:#1a3a4f; }
+    .turno-paciente small { font-size:0.78rem; color:#64748b; }
+    .badge { padding:0.25rem 0.65rem; border-radius:20px; font-size:0.7rem; font-weight:700; text-transform:uppercase; }
+    .badge-solicitado { background:#fff3e0; color:#e65100; }
+    .badge-confirmado  { background:#e8f5e9; color:#2e7d32; }
+    .badge-atendido    { background:#ede7f6; color:#6a1b9a; }
+    .badge-cancelado   { background:#ffebee; color:#c62828; }
+    .turno-acciones { display:flex; gap:0.4rem; flex-wrap:wrap; }
+    .btn-accion { padding:0.35rem 0.8rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; border:none; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; transition:all 0.15s; }
+    .btn-confirmar { background:#e8f5e9; color:#2e7d32; }
+    .btn-confirmar:hover { background:#2e7d32; color:white; }
+    .btn-atender   { background:#ede7f6; color:#6a1b9a; }
+    .btn-atender:hover { background:#6a1b9a; color:white; }
+    .btn-cancelar-turno { background:#ffebee; color:#c62828; }
+    .btn-cancelar-turno:hover { background:#c62828; color:white; }
+    .btn-historial { background:#e3f2fd; color:#1565c0; }
+    .btn-historial:hover { background:#1565c0; color:white; }
+
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center; }
+    .modal-overlay.active { display:flex; }
+    .modal-box { background:white; border-radius:16px; padding:2rem; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+    .modal-title { font-size:1.1rem; font-weight:700; color:#1a3a4f; margin-bottom:0.5rem; }
+    .modal-sub { font-size:0.875rem; color:#64748b; margin-bottom:1rem; }
+    .modal-textarea { width:100%; border:1.5px solid #e2e8f0; border-radius:10px; padding:0.75rem; font-size:0.875rem; resize:none; outline:none; }
+    .modal-textarea:focus { border-color:#c62828; }
+    .modal-actions { display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem; }
+    .btn-modal-close { background:#f1f5f9; color:#374151; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:600; cursor:pointer; }
+    .btn-modal-red { background:#c62828; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:600; cursor:pointer; }
+</style>
+
+@if (TempData["Success"] != null)
+{ <div class="alert-app-success">✅ @TempData["Success"]</div> }
+@if (TempData["Error"] != null)
+{ <div class="alert-app-error" style="background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;padding:0.75rem 1rem;color:#c62828;margin-bottom:1rem;">⚠️ @TempData["Error"]</div> }
+
+<div class="medico-header">
+    <span class="medico-tag">🩺 Panel Médico</span>
+    <h1 class="medico-title">@Model.NombreCompleto</h1>
+    <p class="medico-sub">Mat. @Model.Matricula &mdash; @DateTime.Now.ToString("dddd dd/MM/yyyy", new System.Globalization.CultureInfo("es-AR"))</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card hoy"><div class="stat-icon">📅</div><div class="stat-number">@Model.TurnosHoy</div><div class="stat-label">Turnos hoy</div></div>
+    <div class="stat-card pendiente"><div class="stat-icon">⏳</div><div class="stat-number">@Model.TurnosPendientes</div><div class="stat-label">Pendientes</div></div>
+    <div class="stat-card confirmado"><div class="stat-icon">✅</div><div class="stat-number">@Model.TurnosConfirmados</div><div class="stat-label">Confirmados</div></div>
+    <div class="stat-card atendido"><div class="stat-icon">🩺</div><div class="stat-number">@Model.TurnosAtendidos</div><div class="stat-label">Atendidos</div></div>
+</div>
+
+<div class="app-card" style="margin-bottom:1.5rem;">
+    <div class="app-card-header"><span>📋</span><h4>Agenda de hoy</h4></div>
+    <div class="app-card-body" style="padding:0;">
+        @if (!Model.TurnosDelDia.Any())
+        {
+            <div style="text-align:center;padding:2.5rem;color:#94a3b8;">📭 Sin turnos para hoy</div>
+        }
+        @foreach (var t in Model.TurnosDelDia)
+        {
+            var badgeClass = t.Estado.ToLower() switch {
+                "solicitado" => "badge-solicitado", "confirmado" => "badge-confirmado",
+                "atendido"   => "badge-atendido",   _ => "badge-cancelado" };
+            <div class="turno-row">
+                <div class="turno-hora">@t.FechaHora.ToString("HH:mm")</div>
+                <div class="turno-paciente">
+                    <strong>@t.PacienteNombre</strong>
+                    <small>DNI: @t.PacienteDni @(t.Motivo != null ? $"· {t.Motivo}" : "")</small>
+                </div>
+                <span class="badge @badgeClass">@t.Estado</span>
+                <div class="turno-acciones">
+                    @if (t.Estado == "Solicitado")
+                    {
+                        <form method="post" asp-action="ConfirmarTurno" asp-route-id="@t.IdTurno" style="display:inline;">
+                            <button class="btn-accion btn-confirmar" id="btn-confirmar-@t.IdTurno">✅ Confirmar</button>
+                        </form>
+                    }
+                    @if (t.Estado != "Cancelado" && t.Estado != "Atendido")
+                    {
+                        <a asp-action="AtenderTurno" asp-route-id="@t.IdTurno" class="btn-accion btn-atender" id="btn-atender-@t.IdTurno">🩺 Atender</a>
+                        <button class="btn-accion btn-cancelar-turno" id="btn-cancel-@t.IdTurno" onclick="abrirCancelar(@t.IdTurno)">✕ Cancelar</button>
+                    }
+                    <a asp-action="HistorialPaciente" asp-route-idPaciente="@t.IdPaciente" class="btn-accion btn-historial" id="btn-hist-@t.IdTurno">📋 Historial</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.ProximosTurnos.Any())
+{
+    <div class="app-card">
+        <div class="app-card-header"><span>🗓️</span><h4>Próximos turnos</h4></div>
+        <div class="app-card-body" style="padding:0;">
+            @foreach (var t in Model.ProximosTurnos)
+            {
+                var badgeP = t.Estado == "Confirmado" ? "badge-confirmado" : (t.Estado == "Solicitado" ? "badge-solicitado" : "badge-atendido");
+                <div class="turno-row">
+                    <div class="turno-hora" style="min-width:90px;font-size:0.82rem;">@t.FechaHora.ToString("dd/MM HH:mm")</div>
+                    <div class="turno-paciente">
+                        <strong>@t.PacienteNombre</strong>
+                        <small>DNI: @t.PacienteDni</small>
+                    </div>
+                    <span class="badge @badgeP">@t.Estado</span>
+                    <div class="turno-acciones">
+                        @if (t.Estado == "Solicitado")
+                        {
+                            <form method="post" asp-action="ConfirmarTurno" asp-route-id="@t.IdTurno" style="display:inline;">
+                                <button class="btn-accion btn-confirmar" id="btn-confirm-prox-@t.IdTurno">✅ Confirmar</button>
+                            </form>
+                        }
+                        @if (t.Estado != "Cancelado" && t.Estado != "Atendido")
+                        {
+                            <button class="btn-accion btn-cancelar-turno" onclick="abrirCancelar(@t.IdTurno)" id="btn-cancel-prox-@t.IdTurno">✕ Cancelar</button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Modal cancelar -->
+<div class="modal-overlay" id="modalCancelar">
+    <div class="modal-box">
+        <div class="modal-title">✕ Cancelar turno</div>
+        <p class="modal-sub">El motivo de cancelación es <strong>obligatorio</strong>.</p>
+        <form method="post" asp-action="CancelarTurno" id="formCancelar">
+            <input type="hidden" name="id" id="cancelarId" />
+            <textarea name="motivo" class="modal-textarea" rows="3" placeholder="Motivo de cancelación..." required></textarea>
+            <div class="modal-actions">
+                <button type="button" class="btn-modal-close" onclick="cerrarCancelar()">Volver</button>
+                <button type="submit" class="btn-modal-red">Confirmar cancelación</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function abrirCancelar(id) { document.getElementById('cancelarId').value = id; document.getElementById('modalCancelar').classList.add('active'); }
+    function cerrarCancelar() { document.getElementById('modalCancelar').classList.remove('active'); }
+    document.getElementById('modalCancelar').addEventListener('click', e => { if (e.target === document.getElementById('modalCancelar')) cerrarCancelar(); });
+</script>
+}

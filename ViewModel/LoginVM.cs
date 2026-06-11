@@ -1,13 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace SistemaSaludGoya.ViewModel;
 
 public class LoginVM
 {
-    [Required]
-    [EmailAddress]
-    public string Email { get; set; } = string.Empty;
+    [Required(ErrorMessage = "El email es obligatorio")]
+    [EmailAddress(ErrorMessage = "Email inválido")]
+    public string Email { get; set; } = null!;
 
-    [Required]
-    public string Password { get; set; } = string.Empty;
+    [Required(ErrorMessage = "La contraseña es obligatoria")]
+    public string Password { get; set; } = null!;
 }

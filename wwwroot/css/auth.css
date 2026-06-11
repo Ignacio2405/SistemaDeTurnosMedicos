@@ -1,0 +1,145 @@
+/* =========================================
+   AUTH PAGES — SISTEMA SALUD GOYA
+   ========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.auth-body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(145deg, #1a4f6e 0%, #2A6F97 40%, #4a9bb8 70%, #A8DADC 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-body::before {
+    content: '';
+    position: fixed;
+    width: 600px; height: 600px;
+    background: rgba(168,218,220,0.12);
+    border-radius: 50%;
+    top: -200px; right: -150px;
+    pointer-events: none;
+    animation: floatShape 10s ease-in-out infinite;
+}
+.auth-body::after {
+    content: '';
+    position: fixed;
+    width: 400px; height: 400px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    bottom: -120px; left: -100px;
+    pointer-events: none;
+    animation: floatShape 13s ease-in-out infinite reverse;
+}
+@keyframes floatShape {
+    0%,100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-20px) scale(1.04); }
+}
+
+.auth-page {
+    position: relative; z-index: 1;
+    width: 100%;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 22px;
+    padding: 2.5rem 2.5rem 2rem;
+    width: 100%; max-width: 430px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.15) inset;
+    animation: slideUp 0.45s ease-out;
+}
+.auth-card-wide { max-width: 680px; }
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.auth-header { text-align: center; margin-bottom: 1.75rem; }
+.auth-logo-img {
+    max-height: 55px; max-width: 160px;
+    object-fit: contain; margin-bottom: 1.1rem;
+    filter: drop-shadow(0 2px 6px rgba(42,111,151,0.25));
+}
+.auth-tag {
+    display: inline-block;
+    background: #E5ECF0; color: #2A6F97;
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: 0.28rem 0.75rem; border-radius: 20px; margin-bottom: 0.75rem;
+}
+.auth-title { font-size: 1.55rem; font-weight: 800; color: #1a3a4f; letter-spacing: -0.4px; margin-bottom: 0.3rem; }
+.auth-subtitle { font-size: 0.86rem; color: #64748b; }
+
+.form-group-custom { margin-bottom: 1rem; }
+.form-label-custom {
+    display: block; font-size: 0.75rem; font-weight: 700;
+    color: #2A6F97; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.38rem;
+}
+.input-wrapper { position: relative; display: flex; align-items: center; }
+.input-icon { position: absolute; left: 0.85rem; font-size: 0.9rem; pointer-events: none; z-index: 2; }
+.form-input-custom {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.6rem;
+    border: 1.5px solid #c8d8e4; border-radius: 10px;
+    font-size: 0.93rem; font-family: 'Inter', sans-serif;
+    color: #1a3a4f; background: #f7fafc;
+    transition: all 0.2s; outline: none;
+}
+.form-input-custom:focus { border-color: #2A6F97; background: white; box-shadow: 0 0 0 3px rgba(42,111,151,0.12); }
+.form-input-custom::placeholder { color: #aab8c2; font-size: 0.86rem; }
+
+.form-grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.25rem; }
+@media (max-width: 560px) {
+    .form-grid-two { grid-template-columns: 1fr; }
+    .auth-card, .auth-card-wide { padding: 2rem 1.5rem 1.5rem; }
+}
+
+.validation-msg { display: block; font-size: 0.76rem; color: #c0392b; margin-top: 0.22rem; }
+.alert-error-custom {
+    background: #fdf0ef; border: 1px solid #f5c6c2; color: #c0392b;
+    border-radius: 10px; padding: 0.65rem 0.9rem; font-size: 0.86rem; margin-bottom: 0.9rem;
+}
+.alert-error-custom:empty { display: none; }
+.alert-success-custom {
+    background: #edfaf5; border: 1px solid #A8DADC; color: #1a6b5a;
+    border-radius: 10px; padding: 0.65rem 0.9rem; font-size: 0.86rem;
+    margin-bottom: 0.9rem; text-align: center;
+}
+
+.auth-actions { margin-top: 1.4rem; display: flex; flex-direction: column; gap: 0.65rem; }
+
+.btn-auth-primary {
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    width: 100%; padding: 0.85rem 1.5rem;
+    background: #2A6F97; color: white; border: none; border-radius: 10px;
+    font-size: 0.96rem; font-weight: 700; font-family: 'Inter', sans-serif;
+    cursor: pointer; transition: all 0.22s; text-decoration: none;
+    box-shadow: 0 4px 14px rgba(42,111,151,0.35);
+}
+.btn-auth-primary:hover { background: #1a4f6e; box-shadow: 0 6px 18px rgba(42,111,151,0.45); transform: translateY(-1px); color: white; text-decoration: none; }
+
+.auth-divider { display: flex; align-items: center; gap: 0.7rem; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: #dde6ec; }
+.auth-divider span { font-size: 0.77rem; color: #94a3b8; white-space: nowrap; font-weight: 500; }
+
+.btn-auth-secondary {
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    width: 100%; padding: 0.8rem 1.5rem;
+    background: white; color: #2A6F97; border: 1.5px solid #2A6F97; border-radius: 10px;
+    font-size: 0.93rem; font-weight: 600; font-family: 'Inter', sans-serif;
+    text-decoration: none; cursor: pointer; transition: all 0.22s;
+}
+.btn-auth-secondary:hover { background: #eef5fa; border-color: #1a4f6e; color: #1a4f6e; text-decoration: none; }
+
+.auth-form-footer { margin-top: 1.5rem; text-align: center; font-size: 0.75rem; color: #94a3b8; }

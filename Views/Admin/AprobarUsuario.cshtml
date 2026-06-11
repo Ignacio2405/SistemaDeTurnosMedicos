@@ -1,0 +1,129 @@
+@model SistemaSaludGoya.ViewModel.AprobarMedicoVM
+@{
+    ViewData["Title"] = "Aprobar Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .page-tag { display:inline-block; background:#e8f5e9; color:#2e7d32; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .page-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; margin-bottom:0.2rem; }
+    .form-label { font-size:0.82rem; font-weight:600; color:#374151; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:0.4rem; }
+    .form-control { width:100%; padding:0.65rem 0.9rem; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.9rem; outline:none; transition:border 0.18s; }
+    .form-control:focus { border-color:#2e7d32; box-shadow:0 0 0 3px rgba(46,125,50,0.1); }
+    .form-group { margin-bottom:1.25rem; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    @@media(max-width:600px){ .form-grid{grid-template-columns:1fr;} }
+    .rol-selector { display:flex; gap:1rem; }
+    .rol-option { flex:1; }
+    .rol-option input[type=radio] { display:none; }
+    .rol-card { border:2px solid #e2e8f0; border-radius:12px; padding:1rem; cursor:pointer; text-align:center; transition:all 0.18s; }
+    .rol-option input:checked + .rol-card { border-color:#2e7d32; background:#f0fdf4; }
+    .rol-card .rol-icon { font-size:2rem; margin-bottom:0.4rem; }
+    .rol-card .rol-name { font-weight:700; font-size:0.9rem; color:#1a3a4f; }
+    .rol-card .rol-desc { font-size:0.78rem; color:#64748b; margin-top:0.2rem; }
+    .btn-aprobar { background:#2e7d32; color:white; border:none; padding:0.75rem 2rem; border-radius:12px; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.18s; }
+    .btn-aprobar:hover { background:#1b5e20; }
+    .btn-volver { color:#64748b; font-size:0.875rem; text-decoration:none; margin-left:1rem; }
+    .matricula-field { display:block; }
+    .required-mark { color:#c62828; }
+</style>
+
+<span class="page-tag">✅ Aprobar Usuario</span>
+<h1 class="page-title">Asignar rol al usuario</h1>
+<p style="color:#64748b;margin-bottom:1.5rem;">Completá los datos y asigná el rol correspondiente.</p>
+
+<div class="app-card">
+    <div class="app-card-header"><span>👤</span><h4>@Model.NombreCompleto — @Model.Email</h4></div>
+    <div class="app-card-body">
+        <form method="post" asp-action="AprobarUsuario" id="formAprobar">
+            <input type="hidden" asp-for="IdUsuario" />
+            <input type="hidden" asp-for="NombreCompleto" />
+            <input type="hidden" asp-for="Email" />
+
+            <div class="form-group">
+                <label class="form-label">Rol a asignar <span class="required-mark">*</span></label>
+                <div class="rol-selector">
+                    <label class="rol-option">
+                        <input type="radio" name="RolAsignar" value="Medico" checked onchange="toggleMatricula(this)" />
+                        <div class="rol-card">
+                            <div class="rol-icon">🩺</div>
+                            <div class="rol-name">Médico</div>
+                            <div class="rol-desc">Puede confirmar turnos y cargar consultas</div>
+                        </div>
+                    </label>
+                    <label class="rol-option">
+                        <input type="radio" name="RolAsignar" value="Recepcionista" onchange="toggleMatricula(this)" />
+                        <div class="rol-card">
+                            <div class="rol-icon">🗂️</div>
+                            <div class="rol-name">Recepcionista</div>
+                            <div class="rol-desc">Puede ver y cancelar todos los turnos</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group matricula-field" id="campoMatricula">
+                    <label class="form-label" asp-for="Matricula">Matrícula profesional <span class="required-mark">*</span></label>
+                    <input asp-for="Matricula" class="form-control" placeholder="Ej: MP-12345" id="inp-matricula" />
+                    <span asp-validation-for="Matricula" style="color:#c62828;font-size:0.8rem;"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" asp-for="Telefono">Teléfono de contacto</label>
+                    <input asp-for="Telefono" class="form-control" placeholder="Ej: +54 9 ..." />
+                </div>
+            </div>
+
+            <!-- Especialidades (solo para Médico) -->
+            <div class="form-group matricula-field" id="campoEspecialidades" style="margin-bottom:1.25rem;">
+                <label class="form-label">Especialidades <span class="required-mark">*</span></label>
+                @if (!Model.Especialidades.Any())
+                {
+                    <p style="color:#94a3b8;font-size:0.875rem;">No hay especialidades cargadas en el sistema aún.</p>
+                }
+                else
+                {
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.5rem;margin-top:0.4rem;">
+                        @for (int i = 0; i < Model.Especialidades.Count; i++)
+                        {
+                            var esp = Model.Especialidades[i];
+                            <label style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:0.875rem;transition:all 0.15s;"
+                                   id="label-esp-@esp.IdEspecialidad"
+                                   onmouseover="this.style.borderColor='#2e7d32'" onmouseout="this.style.borderColor=this.querySelector('input').checked?'#2e7d32':'#e2e8f0'">
+                                <input type="checkbox"
+                                       name="EspecialidadesSeleccionadas"
+                                       value="@esp.IdEspecialidad"
+                                       id="esp-@esp.IdEspecialidad"
+                                       style="accent-color:#2e7d32;"
+                                       onchange="this.closest('label').style.borderColor=this.checked?'#2e7d32':'#e2e8f0'" />
+                                @esp.Nombre
+                            </label>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div style="display:flex;align-items:center;">
+                <button type="submit" class="btn-aprobar" id="btn-confirmar-aprobacion">✅ Confirmar aprobación</button>
+                <a asp-action="Dashboard" class="btn-volver">← Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function toggleMatricula(radio) {
+        const campoMat  = document.getElementById('campoMatricula');
+        const campoEsp  = document.getElementById('campoEspecialidades');
+        const inp       = document.getElementById('inp-matricula');
+        const esMedico  = radio.value === 'Medico';
+        campoMat.style.display = esMedico ? 'block' : 'none';
+        campoEsp.style.display = esMedico ? 'block' : 'none';
+        inp.required = esMedico;
+        if (!esMedico) {
+            inp.value = '';
+            document.querySelectorAll('[name="EspecialidadesSeleccionadas"]').forEach(cb => cb.checked = false);
+        }
+    }
+</script>
+}

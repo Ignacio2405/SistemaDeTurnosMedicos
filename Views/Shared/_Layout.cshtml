@@ -1,56 +1,174 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SistemaSaludGoya</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - Sistema Salud Goya</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/SistemaSaludGoya.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/SistemaSaludGoya.styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-primary border-bottom box-shadow mb-3 justify-content-around ">
-            <div class="container-fluid">
-                <img asp-append-version="true" src="~/images/logoBlanco.png" alt="logo" />
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-around">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Auth" asp-action="Login">Iniciar Sesion</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Auth" asp-action="Register">Crear tu cuenta</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - SistemaSaludGoya - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+<nav class="app-navbar">
+    <div class="navbar-inner">
+
+        <!-- IZQUIERDA: hamburguesa + menú -->
+        <div class="navbar-left">
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                <div class="nav-dropdown" id="mainDropdown">
+                    <button class="nav-dropdown-trigger" onclick="toggleMenu(event)">
+                        <div class="nav-hamburger-btn" aria-label="Abrir menú">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="nav-menu-label-btn">Menú</span>
+                    </button>
+
+                    <div class="nav-dropdown-menu">
+                        <div class="nav-menu-header">
+                            <span class="nav-menu-header-icon">🏥</span>
+                            <span class="nav-menu-header-text">Sistema Salud Goya</span>
+                        </div>
+
+                        @if (User.IsInRole("Paciente"))
+                        {
+                            <div class="nav-menu-section">
+                                <span class="nav-section-label">Mis Turnos</span>
+                                <a class="nav-menu-item" asp-controller="Turnos" asp-action="Create">
+                                    <span class="item-icon">📅</span> Solicitar turno
+                                </a>
+                                <a class="nav-menu-item" asp-controller="Turnos" asp-action="Index">
+                                    <span class="item-icon">📋</span> Ver mis turnos
+                                </a>
+                            </div>
+                            <hr class="nav-menu-divider" />
+                            <div class="nav-menu-section">
+                                <span class="nav-section-label">Mi cuenta</span>
+                                <a class="nav-menu-item" asp-controller="Perfil" asp-action="Editar">
+                                    <span class="item-icon">👤</span> Mi perfil
+                                </a>
+                                <span class="nav-menu-item disabled">
+                                    <span class="item-icon">🩺</span> Historial clínico
+                                </span>
+                            </div>
+                        }
+
+                        @if (User.IsInRole("Medico") || User.IsInRole("Administrador"))
+                        {
+                            <div class="nav-menu-section">
+                                <span class="nav-section-label">Panel Médico</span>
+                                <a class="nav-menu-item" asp-controller="Medico" asp-action="Dashboard">
+                                    <span class="item-icon">🩺</span> Mi agenda
+                                </a>
+                                @if (User.IsInRole("Medico"))
+                                {
+                                    <a class="nav-menu-item" asp-controller="Perfil" asp-action="Editar">
+                                        <span class="item-icon">👤</span> Mi perfil
+                                    </a>
+                                }
+                            </div>
+                            <hr class="nav-menu-divider" />
+                        }
+
+                        @if (User.IsInRole("Recepcionista") || User.IsInRole("Administrador"))
+                        {
+                            <div class="nav-menu-section">
+                                <span class="nav-section-label">Recepción</span>
+                                <a class="nav-menu-item" asp-controller="Recepcionista" asp-action="Dashboard">
+                                    <span class="item-icon">🗂️</span> Todos los turnos
+                                </a>
+                                @if (User.IsInRole("Recepcionista"))
+                                {
+                                    <a class="nav-menu-item" asp-controller="Perfil" asp-action="Editar">
+                                        <span class="item-icon">👤</span> Mi perfil
+                                    </a>
+                                }
+                            </div>
+                            <hr class="nav-menu-divider" />
+                        }
+
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <div class="nav-menu-section">
+                                <span class="nav-section-label">Administración</span>
+                                <a class="nav-menu-item" asp-controller="Admin" asp-action="Dashboard">
+                                    <span class="item-icon">⚙️</span> Panel admin
+                                </a>
+                                <a class="nav-menu-item" asp-controller="Admin" asp-action="AnadirPersonal"
+                                   style="background:linear-gradient(135deg,#eef5fa,#E5ECF0);font-weight:700;">
+                                    <span class="item-icon" style="background:linear-gradient(135deg,#2A6F97,#1a4f6e);color:white;">➕</span>
+                                    Añadir personal
+                                </a>
+                                <a class="nav-menu-item" asp-controller="Perfil" asp-action="Editar">
+                                    <span class="item-icon">👤</span> Mi perfil
+                                </a>
+                            </div>
+                            <hr class="nav-menu-divider" />
+                        }
+
+
+                        <div class="nav-menu-section">
+                            <a class="nav-menu-item danger" asp-controller="Auth" asp-action="Logout">
+                                <span class="item-icon">🚪</span> Cerrar sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+
+        <!-- DERECHA: usuario + logo -->
+        <div class="navbar-right">
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var nombreCompleto = User.Identity.Name ?? "";
+                var iniciales = string.Join("", nombreCompleto.Split(' ')
+                    .Take(2)
+                    .Select(p => p.Length > 0 ? p[0].ToString().ToUpper() : ""));
+                <div class="navbar-user-chip">
+                    <div class="navbar-user-avatar">@iniciales</div>
+                    <span class="navbar-username">@nombreCompleto</span>
+                </div>
+            }
+            else
+            {
+                <div class="navbar-auth-links">
+                    <a class="nav-auth-link" asp-controller="Auth" asp-action="Login">Iniciar sesión</a>
+                    <a class="nav-auth-link outlined" asp-controller="Auth" asp-action="Register">Registrarse</a>
+                </div>
+            }
+
+            <a href="/Home/Index" class="navbar-brand-logo">
+                <img src="~/Images/logoBlanco.png" alt="Sistema Salud Goya" />
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+<div class="main-content">
+    @RenderBody()
+</div>
+
+<footer class="app-footer">
+    &copy; 2026 Sistema de Salud Goya &mdash;
+    <a asp-controller="Home" asp-action="Privacy">Privacidad</a>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleMenu(e) {
+        e.stopPropagation();
+        document.getElementById('mainDropdown').classList.toggle('open');
+    }
+    document.addEventListener('click', function () {
+        var dd = document.getElementById('mainDropdown');
+        if (dd) dd.classList.remove('open');
+    });
+</script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
