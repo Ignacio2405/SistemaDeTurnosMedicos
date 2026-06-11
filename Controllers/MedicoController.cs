@@ -75,33 +75,33 @@ namespace SistemaSaludGoya.Controllers
 
             var vm = new MedicoDashboardVM
             {
-                IdMedico          = idMedico.Value,
-                NombreCompleto    = $"Dr/a. {medico.Usuario.Nombre} {medico.Usuario.Apellido}",
-                Matricula         = medico.Matricula,
-                TurnosHoy         = turnosHoy.Count(t => t.Estado != EstadoTurno.Cancelado),
-                TurnosPendientes  = turnosHoy.Count(t => t.Estado == EstadoTurno.Solicitado),
+                IdMedico = idMedico.Value,
+                NombreCompleto = $"Dr/a. {medico.Usuario.Nombre} {medico.Usuario.Apellido}",
+                Matricula = medico.Matricula,
+                TurnosHoy = turnosHoy.Count(t => t.Estado != EstadoTurno.Cancelado),
+                TurnosPendientes = turnosHoy.Count(t => t.Estado == EstadoTurno.Solicitado),
                 TurnosConfirmados = turnosHoy.Count(t => t.Estado == EstadoTurno.Confirmado),
-                TurnosAtendidos   = turnosHoy.Count(t => t.Estado == EstadoTurno.Atendido),
+                TurnosAtendidos = turnosHoy.Count(t => t.Estado == EstadoTurno.Atendido),
                 TurnosDelDia = turnosHoy.Select(t => new TurnoResumenVM
                 {
-                    IdTurno        = t.IdTurno,
-                    IdPaciente     = t.IdPaciente,
-                    FechaHora      = t.FechaHora,
+                    IdTurno = t.IdTurno,
+                    IdPaciente = t.IdPaciente,
+                    FechaHora = t.FechaHora,
                     PacienteNombre = $"{t.Paciente.Usuario.Nombre} {t.Paciente.Usuario.Apellido}",
-                    PacienteDni    = t.Paciente.Dni,
-                    Estado         = t.Estado.ToString(),
-                    Motivo         = t.MotivoConsulta,
-                    TieneConsulta  = t.Consulta != null
+                    PacienteDni = t.Paciente.Dni,
+                    Estado = t.Estado.ToString(),
+                    Motivo = t.MotivoConsulta,
+                    TieneConsulta = t.Consulta != null
                 }).ToList(),
                 ProximosTurnos = proximos.Select(t => new TurnoResumenVM
                 {
-                    IdTurno        = t.IdTurno,
-                    IdPaciente     = t.IdPaciente,
-                    FechaHora      = t.FechaHora,
+                    IdTurno = t.IdTurno,
+                    IdPaciente = t.IdPaciente,
+                    FechaHora = t.FechaHora,
                     PacienteNombre = $"{t.Paciente.Usuario.Nombre} {t.Paciente.Usuario.Apellido}",
-                    PacienteDni    = t.Paciente.Dni,
-                    Estado         = t.Estado.ToString(),
-                    Motivo         = t.MotivoConsulta
+                    PacienteDni = t.Paciente.Dni,
+                    Estado = t.Estado.ToString(),
+                    Motivo = t.MotivoConsulta
                 }).ToList()
             };
 
@@ -134,7 +134,7 @@ namespace SistemaSaludGoya.Controllers
             var turno = await _context.Turnos.FirstOrDefaultAsync(t => t.IdTurno == id && t.IdMedico == idMedico);
             if (turno == null) return RedirectToAction("Dashboard");
 
-            turno.Estado         = EstadoTurno.Cancelado;
+            turno.Estado = EstadoTurno.Cancelado;
             turno.MotivoConsulta = $"[CANCELADO POR MÉDICO] {motivo}";
             await _context.SaveChangesAsync();
             TempData["Success"] = "Turno cancelado.";
@@ -159,10 +159,10 @@ namespace SistemaSaludGoya.Controllers
 
             var vm = new ConsultaVM
             {
-                IdTurno        = turno.IdTurno,
+                IdTurno = turno.IdTurno,
                 PacienteNombre = $"{turno.Paciente.Usuario.Nombre} {turno.Paciente.Usuario.Apellido}",
-                PacienteDni    = turno.Paciente.Dni,
-                FechaHora      = turno.FechaHora,
+                PacienteDni = turno.Paciente.Dni,
+                FechaHora = turno.FechaHora,
                 MotivoConsulta = turno.MotivoConsulta
             };
             return View(vm);
@@ -179,10 +179,10 @@ namespace SistemaSaludGoya.Controllers
 
             var consulta = new Consulta
             {
-                IdTurno       = model.IdTurno,
-                Diagnostico   = model.Diagnostico,
+                IdTurno = model.IdTurno,
+                Diagnostico = model.Diagnostico,
                 Observaciones = model.Observaciones,
-                Indicaciones  = model.Indicaciones,
+                Indicaciones = model.Indicaciones,
                 FechaConsulta = DateTime.Now
             };
             _context.Consultas.Add(consulta);
@@ -209,60 +209,24 @@ namespace SistemaSaludGoya.Controllers
 
             var vm = new HistorialPacienteVM
             {
-                IdPaciente     = idPaciente,
+                IdPaciente = idPaciente,
                 NombreCompleto = $"{paciente.Usuario.Nombre} {paciente.Usuario.Apellido}",
-                Dni            = paciente.Dni,
-                Telefono       = paciente.Telefono,
+                Dni = paciente.Dni,
+                Telefono = paciente.Telefono,
                 FechaNacimiento = paciente.FechaNacimiento,
                 Consultas = consultas.Select(c => new ConsultaHistorialVM
                 {
-                    IdConsulta    = c.IdConsulta,
+                    IdConsulta = c.IdConsulta,
                     FechaConsulta = c.FechaConsulta,
-                    MedicoNombre  = $"Dr/a. {c.Turno.Medico.Usuario.Nombre} {c.Turno.Medico.Usuario.Apellido}",
-                    Diagnostico   = c.Diagnostico,
+                    MedicoNombre = $"Dr/a. {c.Turno.Medico.Usuario.Nombre} {c.Turno.Medico.Usuario.Apellido}",
+                    Diagnostico = c.Diagnostico,
                     Observaciones = c.Observaciones,
-                    Indicaciones  = c.Indicaciones
+                    Indicaciones = c.Indicaciones
                 }).ToList()
             };
 
             return View(vm);
-﻿using Microsoft.AspNetCore.Mvc;
-using SistemaSaludGoya.Services;
-using SistemaSaludGoya.Models;
-
-namespace SistemaSaludGoya.Controllers
-{
-   
-    public class MedicoController : Controller
-    {
-              private readonly IMedicoService _medicoService;
-              
-        public MedicoController(IMedicoService medicoService)
-        {
-            _medicoService = medicoService;
-        }
-
-      
-        public async Task<IActionResult> Index()
-        {
-            var medicos = await _medicoService.ObtenerTodosAsync();
-
-            return View(medicos);
-        }
-
-   
-        public async Task<IActionResult> Details(int id)
-        {
-            var medico = await _medicoService.ObtenerPorIdAsync(id);
-
-            
-            if (medico == null)
-            {
-                return NotFound();
-            }
-
-      
-            return View(medico);
         }
     }
 }
+﻿
