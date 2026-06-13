@@ -1,17 +1,22 @@
 ﻿using SistemaSaludGoya.Models;
+using SistemaSaludGoya.ViewModel;
 
 namespace SistemaSaludGoya.Services
 {
     public interface IMedicoService
     {
-        Task<List<Medico>> ObtenerTodosAsync();
+        Task<int?> GetIdMedicoAsync( int idUsuario, bool esAdministrador, int? medicoIdQuery);
 
-        Task<Medico?> ObtenerPorIdAsync(int id);
+        Task<MedicoDashboardVM?> ObtenerDashboardAsync( int idMedico, bool esMedico);
 
-        Task CrearAsync(Medico medico);
+        Task<bool> ConfirmarTurnoAsync( int idTurno, int idMedico);
 
-        Task ActualizarAsync(Medico medico);
+        Task<(bool Ok, string Mensaje)> CancelarTurnoAsync( int idTurno, int idMedico, string motivo);
 
-        Task EliminarAsync(int id);
+        Task<ConsultaVM?> ObtenerTurnoParaAtenderAsync( int idTurno, int idMedico);
+
+        Task<bool> GuardarConsultaAsync( ConsultaVM model, int idMedico);
+
+        Task<HistorialPacienteVM?> ObtenerHistorialPacienteAsync( int idPaciente);
     }
 }
