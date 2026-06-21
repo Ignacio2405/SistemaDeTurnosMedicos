@@ -43,7 +43,7 @@ builder.Services.AddMvc();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IMedicoService, MedicoService>();
 builder.Services.AddScoped<IPacienteService, PacienteService>();
 builder.Services.AddScoped<ITurnoService, TurnoService>();
@@ -53,6 +53,9 @@ builder.Services.AddScoped<IRecetaService, RecetaService>();
 builder.Services.AddScoped<IEstudioService, EstudioService>();
 builder.Services.AddScoped<IPagoService, PagoService>();
 builder.Services.AddScoped<IDocumentoService, DocumentoService>();
+builder.Services.AddScoped<IRecepcionistaService, RecepcionistaService>();
+builder.Services.AddScoped<IHomeService, HomeService>();
+builder.Services.AddScoped<IPerfilService, PerfilService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(

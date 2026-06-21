@@ -70,11 +70,13 @@
     <h1 class="page-title">Mi perfil</h1>
 </div>
 
-<!-- SECCIÓN: Datos personales -->
 <div class="section-card">
     <div class="section-head"><span>📋</span><h4>Datos personales</h4></div>
     <div class="section-body">
         <form method="post" asp-action="GuardarPerfil">
+            
+            <div asp-validation-summary="All" class="text-danger" style="color:#c62828; font-weight:bold; margin-bottom:1rem; font-size:0.85rem;"></div>
+
             <input type="hidden" asp-for="IdUsuario" />
             <input type="hidden" asp-for="Rol" />
 
@@ -99,6 +101,7 @@
                 <label class="form-label">Nueva contraseña</label>
                 <input asp-for="NuevaPassword" type="password" class="form-control" placeholder="Dejá vacío para no cambiar" id="perfil-password" />
                 <p class="pass-hint">Si dejás este campo vacío, tu contraseña no cambia.</p>
+                <span asp-validation-for="NuevaPassword" style="color:#c62828;font-size:0.8rem;"></span>
             </div>
             <div class="form-group">
                 <label class="form-label">Teléfono</label>
@@ -109,13 +112,17 @@
             {
                 <div class="form-grid">
                     <div class="form-group">
+                        <label class="form-label">DNI</label>
+                        <input asp-for="Dni" class="form-control" placeholder="Tu DNI" id="perfil-dni" />
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Fecha de nacimiento</label>
                         <input asp-for="FechaNacimiento" type="date" class="form-control" id="perfil-nacimiento" value="@(Model.FechaNacimiento?.ToString("yyyy-MM-dd"))" />
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Dirección</label>
-                        <input asp-for="Direccion" class="form-control" placeholder="Tu dirección" id="perfil-direccion" />
-                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dirección</label>
+                    <input asp-for="Direccion" class="form-control" placeholder="Tu dirección" id="perfil-direccion" />
                 </div>
             }
 
@@ -127,20 +134,18 @@
                 </div>
             }
 
-            <button type="submit" class="btn-guardar" id="btn-guardar-datos">💾 Guardar datos personales</button>
+            <button type="submit" class="btn-guardar" id="btn-guardar-datos" style="margin-top: 0.5rem;">💾 Guardar datos personales</button>
         </form>
     </div>
 </div>
 
 @if (esMedico)
 {
-    <!-- SECCIÓN: Horarios de atención -->
     <div class="section-card">
         <div class="section-head"><span>🗓️</span><h4>Horarios de atención semanal</h4></div>
         <div class="section-body">
             <p class="turno-hint">Seleccioná los días que trabajás y el rango horario. Podés usar los atajos de turno para auto-completar.</p>
 
-            <!-- Atajos de turno -->
             <div style="margin-bottom:1rem;">
                 <span style="font-size:0.8rem;font-weight:600;color:#374151;margin-right:0.5rem;">Atajo:</span>
                 <div class="turno-selector" style="display:inline-flex;">
