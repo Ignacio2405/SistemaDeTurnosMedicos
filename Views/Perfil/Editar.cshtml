@@ -30,6 +30,12 @@
     .btn-guardar { background:linear-gradient(135deg,#2A6F97,#1a4f6e); color:white; border:none; padding:0.7rem 1.75rem; border-radius:12px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.18s; }
     .btn-guardar:hover { opacity:0.9; transform:translateY(-1px); }
 
+    /* Estilos para campos bloqueados */
+    .input-group { display: flex; gap: 0.5rem; align-items: center; }
+    .btn-edit-field { background: #f1f5f9; border: 1.5px solid #e2e8f0; padding: 0.6rem 1rem; border-radius: 10px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s; white-space: nowrap; font-size: 0.85rem; }
+    .btn-edit-field:hover { background: #e2e8f0; color: #1e293b; }
+    .form-control[readonly] { background: #f8fafc; color: #64748b; cursor: not-allowed; border-color: #f1f5f9; }
+
     /* Horarios */
     .dia-row { display:grid; grid-template-columns:110px 1fr 1fr 1fr; align-items:center; gap:1rem; padding:0.75rem 0; border-bottom:1px solid #f0f4f7; }
     .dia-row:last-child { border-bottom:none; }
@@ -73,7 +79,7 @@
 <div class="section-card">
     <div class="section-head"><span>📋</span><h4>Datos personales</h4></div>
     <div class="section-body">
-        <form method="post" asp-action="GuardarPerfil">
+        <form method="post" asp-action="GuardarPerfil" autocomplete="off">
             
             <div asp-validation-summary="All" class="text-danger" style="color:#c62828; font-weight:bold; margin-bottom:1rem; font-size:0.85rem;"></div>
 
@@ -92,17 +98,26 @@
                     <span asp-validation-for="Apellido" style="color:#c62828;font-size:0.8rem;"></span>
                 </div>
             </div>
+
             <div class="form-group">
                 <label class="form-label">Email <span class="required-mark">*</span></label>
-                <input asp-for="Email" type="email" class="form-control" id="perfil-email" />
+                <div class="input-group">
+                    <input asp-for="Email" type="email" class="form-control" id="perfil-email" readonly autocomplete="off" />
+                    <button type="button" class="btn-edit-field" onclick="habilitarEdicion('perfil-email', this)">✏️ Cambiar</button>
+                </div>
                 <span asp-validation-for="Email" style="color:#c62828;font-size:0.8rem;"></span>
             </div>
+
             <div class="form-group">
                 <label class="form-label">Nueva contraseña</label>
-                <input asp-for="NuevaPassword" type="password" class="form-control" placeholder="Dejá vacío para no cambiar" id="perfil-password" />
-                <p class="pass-hint">Si dejás este campo vacío, tu contraseña no cambia.</p>
+                <div class="input-group">
+                    <input asp-for="NuevaPassword" type="password" class="form-control" placeholder="Bloqueado por seguridad" id="perfil-password" readonly autocomplete="new-password" />
+                    <button type="button" class="btn-edit-field" onclick="habilitarEdicion('perfil-password', this)">✏️ Cambiar</button>
+                </div>
+                <p class="pass-hint">Hacé clic en "Cambiar" si querés actualizar tu contraseña.</p>
                 <span asp-validation-for="NuevaPassword" style="color:#c62828;font-size:0.8rem;"></span>
             </div>
+
             <div class="form-group">
                 <label class="form-label">Teléfono</label>
                 <input asp-for="Telefono" class="form-control" placeholder="+54 9 ..." id="perfil-telefono" />
@@ -197,6 +212,17 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 <script>
+    //función para desbloquear los inputs de Email y Password
+    function habilitarEdicion(inputId, btnElement) {
+        const input = document.getElementById(inputId);
+        input.removeAttribute('readonly');
+        input.focus();
+        if (inputId === 'perfil-password') {
+            input.placeholder = "Escribí tu nueva contraseña";
+        }
+        btnElement.style.display = 'none';
+    }
+
     function toggleDia(i, checked) {
         document.getElementById('hora-desde-' + i).disabled = !checked;
         document.getElementById('hora-hasta-' + i).disabled = !checked;
@@ -218,11 +244,9 @@
         });
     }
 
-    // Al enviar el form de horarios, construir los arrays en orden correcto
     document.getElementById('formHorarios')?.addEventListener('submit', function(e) {
         e.preventDefault();
         const form = this;
-        // Limpiar name de checkboxes y hora inputs para no enviar datos sucios
         form.querySelectorAll('.dia-check, .hora-input').forEach(el => el.removeAttribute('name'));
 
         const totalDias = 7;
