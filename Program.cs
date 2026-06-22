@@ -5,10 +5,7 @@ using SistemaSaludGoya.Data;
 using SistemaSaludGoya.Models;
 using SistemaSaludGoya.Services;
 
-// Permite usar DateTime sin especificar UTC con PostgreSQL/Npgsql
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
-// Buscar wwwroot ANTES de crear el builder.
 static string FindWwwroot()
 {
     var baseDir = AppContext.BaseDirectory;
@@ -28,7 +25,6 @@ var wwwrootPath = FindWwwroot();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Setear ContentRoot si corremos desde bin\
 if (!Directory.Exists(Path.Combine(AppContext.BaseDirectory, "wwwroot")))
 {
     var dir = new DirectoryInfo(AppContext.BaseDirectory);
@@ -39,7 +35,6 @@ if (!Directory.Exists(Path.Combine(AppContext.BaseDirectory, "wwwroot")))
 }
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddMvc();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -64,23 +59,36 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath        = "/Auth/Login";
+        options.LoginPath = "/Auth/Login";
         options.AccessDeniedPath = "/Auth/AccessDenied";
-        options.ExpireTimeSpan   = TimeSpan.FromHours(8);
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 
-builder.Services.AddAuthorization();
+// PERMISOS DINÁMICOS
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ModuloUsuarios", p => p.RequireClaim("Permiso", "usuarios.gestionar.all"));
+    options.AddPolicy("ModuloPacientesGlobal", p => p.RequireClaim("Permiso", "pacientes.gestionar.all"));
+    options.AddPolicy("ModuloTurnosGlobal", p => p.RequireClaim("Permiso", "turnos.gestionar.all"));
+
+    options.AddPolicy("ModuloConsultas", p => p.RequireClaim("Permiso", "consultas.atender.propio"));
+    options.AddPolicy("ModuloTurnosPaciente", p => p.RequireClaim("Permiso", "turnos.gestionar.propio"));
+    options.AddPolicy("ModuloAgendaMedica", p => p.RequireClaim("Permiso", "turnos.ver.propio", "turnos.gestionar.all"));
+
+    options.AddPolicy("ModuloHorarios", p => p.RequireClaim("Permiso", "horarios.gestionar.all", "horarios.gestionar.propio"));
+    options.AddPolicy("ModuloHistorial", p => p.RequireClaim("Permiso", "historial.ver.all", "historial.ver.propio"));
+});
 
 var app = builder.Build();
 
-// ── Seed de datos iniciales ────────────────────────────────────────
+//Seed de datos iniciales
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
 
-    // Seed roles
-    var rolesRequeridos = new[] { "Paciente", "Medico", "Recepcionista", "Administrador" };
+    //Seed roles
+    var rolesRequeridos = new[] { "paciente", "medico", "recepcionista", "administrador" };
     foreach (var rolNombre in rolesRequeridos)
     {
         if (!db.Roles.Any(r => r.Nombre == rolNombre))
@@ -88,7 +96,7 @@ using (var scope = app.Services.CreateScope())
     }
     db.SaveChanges();
 
-    // Seed especialidades médicas
+    //Seed especialidades médicas
     var especialidadesRequeridas = new[]
     {
         "Clínica Médica", "Cardiología", "Pediatría", "Ginecología",
@@ -102,22 +110,22 @@ using (var scope = app.Services.CreateScope())
     }
     db.SaveChanges();
 
-    // Seed usuario administrador por defecto
+    //Seed usuario administrador por defecto
     const string adminEmail = "admin@sistemasaludgoya.com";
     if (!db.Usuarios.Any(u => u.Email == adminEmail))
     {
         var adminUsuario = new Usuario
         {
-            Nombre       = "Admin",
-            Apellido     = "Sistema",
-            Email        = adminEmail,
+            Nombre = "Admin",
+            Apellido = "Sistema",
+            Email = adminEmail,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
-            Activo       = true
+            Activo = true
         };
         db.Usuarios.Add(adminUsuario);
         db.SaveChanges();
 
-        var rolAdmin = db.Roles.First(r => r.Nombre == "Administrador");
+        var rolAdmin = db.Roles.First(r => r.Nombre == "administrador");
         db.UsuariosRoles.Add(new UsuarioRol { IdUsuario = adminUsuario.IdUsuario, IdRol = rolAdmin.IdRol });
         db.SaveChanges();
     }

@@ -6,7 +6,7 @@ using SistemaSaludGoya.ViewModel;
 
 namespace SistemaSaludGoya.Controllers
 {
-    [Authorize(Roles = "Paciente")]
+    [Authorize(Policy = "ModuloTurnosPaciente")]
     public class HomeController : Controller
     {
         private readonly IHomeService _homeService;

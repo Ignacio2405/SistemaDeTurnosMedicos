@@ -5,7 +5,7 @@ using SistemaSaludGoya.ViewModel;
 
 namespace SistemaSaludGoya.Controllers
 {
-    [Authorize(Roles = "Administrador")]
+    [Authorize(Policy = "ModuloUsuarios")]
     public class AdminController : Controller
     {
         private readonly IAdminService _adminService;

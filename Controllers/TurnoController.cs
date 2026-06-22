@@ -12,7 +12,7 @@ namespace SistemaSaludGoya.Controllers
 
         public TurnoController(ITurnoService turnoService) { _turnoService = turnoService; }
 
-        [Authorize(Roles = "Paciente")]
+        [Authorize(Policy = "ModuloTurnosPaciente")]
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -24,7 +24,7 @@ namespace SistemaSaludGoya.Controllers
             return View(turnos);
         }
 
-        [Authorize(Roles = "Paciente")]
+        [Authorize(Policy = "ModuloTurnosPaciente")]
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -32,7 +32,7 @@ namespace SistemaSaludGoya.Controllers
             return View();
         }
 
-        [Authorize(Roles = "Paciente")]
+        [Authorize(Policy = "ModuloTurnosPaciente")]
         [HttpPost]
         public async Task<IActionResult> Create(int MedicoId, DateTime Fecha, TimeSpan Hora, string Motivo)
         {
@@ -57,7 +57,7 @@ namespace SistemaSaludGoya.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize(Roles = "Paciente")]
+        [Authorize(Policy = "ModuloTurnosPaciente")]
         [HttpPost]
         public async Task<IActionResult> Cancelar(int id, string motivo)
         {
@@ -73,7 +73,7 @@ namespace SistemaSaludGoya.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize(Roles = "Administrador,Recepcionista")]
+        [Authorize(Policy = "ModuloTurnosGlobal")]
         [HttpGet]
         public async Task<IActionResult> Todos()
         {
@@ -81,7 +81,7 @@ namespace SistemaSaludGoya.Controllers
             return View(turnos);
         }
 
-        [Authorize(Roles = "Administrador,Recepcionista")]
+        [Authorize(Policy = "ModuloTurnosGlobal")]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -90,7 +90,7 @@ namespace SistemaSaludGoya.Controllers
             return View(turno);
         }
 
-        [Authorize(Roles = "Paciente")]
+        [Authorize(Policy = "ModuloTurnosPaciente")]
         [HttpGet]
         public async Task<IActionResult> ObtenerMedicosPorEspecialidad(int idEspecialidad)
         {
@@ -98,7 +98,7 @@ namespace SistemaSaludGoya.Controllers
             return Json(medicos);
         }
 
-        [Authorize(Roles = "Paciente")]
+        [Authorize(Policy = "ModuloTurnosPaciente")]
         [HttpGet]
         public async Task<IActionResult> ObtenerHorariosOcupados(int medicoId, string fecha)
         {
@@ -106,7 +106,7 @@ namespace SistemaSaludGoya.Controllers
             return Json(horarios);
         }
 
-        [Authorize(Roles = "Paciente")]
+        [Authorize(Policy = "ModuloTurnosPaciente")]
         [HttpGet]
         public async Task<IActionResult> ObtenerDiasHabiles(int medicoId)
         {

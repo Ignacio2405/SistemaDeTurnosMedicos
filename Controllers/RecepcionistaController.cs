@@ -4,7 +4,7 @@ using SistemaSaludGoya.Services;
 
 namespace SistemaSaludGoya.Controllers
 {
-    [Authorize(Roles = "Recepcionista,Administrador")]
+    [Authorize(Policy = "ModuloTurnosGlobal")]
     public class RecepcionistaController : Controller
     {
         private readonly IRecepcionistaService _recepcionistaService;

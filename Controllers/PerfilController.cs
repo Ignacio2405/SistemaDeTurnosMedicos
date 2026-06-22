@@ -34,7 +34,7 @@ namespace SistemaSaludGoya.Controllers
                 ModelState.Remove(nameof(model.NuevaPassword));
             }
 
-            if (User.FindFirstValue(ClaimTypes.Role) == "Paciente")
+            if (User.FindFirstValue(ClaimTypes.Role) == "paciente")
             {
                 ModelState.Remove("Matricula");
             }
@@ -61,7 +61,7 @@ namespace SistemaSaludGoya.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Medico")]
+        [Authorize(Policy = "ModuloHorarios")]
         public async Task<IActionResult> GuardarHorarios(List<bool> diasActivos, List<string> horasDesde, List<string> horasHasta)
         {
             var idUsuario = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");

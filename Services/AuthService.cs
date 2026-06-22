@@ -18,31 +18,40 @@ public class AuthService : IAuthService
     {
         var usuario = await _context.Usuarios
             .Include(u => u.Paciente)
-            .Include(u => u.UsuarioRoles).ThenInclude(ur => ur.Rol)
+            .Include(u => u.UsuarioRoles)
+                .ThenInclude(ur => ur.Rol)
+                    .ThenInclude(r => r.RolPermisos)
+                        .ThenInclude(rp => rp.Permiso)
             .FirstOrDefaultAsync(u => u.Email == email && u.Activo);
 
         if (usuario == null || !BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash))
             return (null, null, "Email o contraseña incorrectos");
 
-        var usuarioConRol = await _context.UsuariosRoles
-            .Include(ur => ur.Rol)
-            .FirstOrDefaultAsync(ur => ur.IdUsuario == usuario.IdUsuario);
+        var usuarioRol = usuario.UsuarioRoles.FirstOrDefault();
 
-        if (usuarioConRol != null)
-            return (usuario, usuarioConRol.Rol.Nombre, null);
+        if (usuarioRol != null)
+            return (usuario, usuarioRol.Rol.Nombre, null);
 
         var tienePaciente = await _context.Pacientes.AnyAsync(p => p.IdUsuario == usuario.IdUsuario);
 
         if (tienePaciente)
         {
-            var rolPaciente = await _context.Roles.FirstOrDefaultAsync(r => r.Nombre == "Paciente");
+            var rolPaciente = await _context.Roles.FirstOrDefaultAsync(r => r.Nombre == "paciente");
             if (rolPaciente != null)
             {
                 _context.UsuariosRoles.Add(new UsuarioRol { IdUsuario = usuario.IdUsuario, IdRol = rolPaciente.IdRol });
                 await _context.SaveChangesAsync();
-                return (usuario, "Paciente", null);
+
+                usuario = await _context.Usuarios
+                    .Include(u => u.UsuarioRoles)
+                        .ThenInclude(ur => ur.Rol)
+                            .ThenInclude(r => r.RolPermisos)
+                                .ThenInclude(rp => rp.Permiso)
+                    .FirstOrDefaultAsync(u => u.IdUsuario == usuario.IdUsuario);
+
+                return (usuario, "paciente", null);
             }
-            return (null, null, "Error interno: el rol Paciente no existe.");
+            return (null, null, "Error interno: el rol paciente no existe.");
         }
 
         return (null, null, "Tu cuenta está pendiente de aprobación por un administrador.");
@@ -68,14 +77,13 @@ public class AuthService : IAuthService
         {
             IdUsuario = usuario.IdUsuario,
             Dni = model.Dni,
-            FechaNacimiento = model.FechaNacimiento,
+            FechaNacimiento = model.FechaNacimiento.ToUniversalTime(),
             Telefono = model.Telefono,
             Direccion = model.Direccion
         };
         _context.Pacientes.Add(paciente);
 
-        // Asignar rol Paciente
-        var rolPaciente = await _context.Roles.FirstOrDefaultAsync(r => r.Nombre == "Paciente");
+        var rolPaciente = await _context.Roles.FirstOrDefaultAsync(r => r.Nombre == "paciente");
         if (rolPaciente != null)
         {
             _context.UsuariosRoles.Add(new UsuarioRol { IdUsuario = usuario.IdUsuario, IdRol = rolPaciente.IdRol });

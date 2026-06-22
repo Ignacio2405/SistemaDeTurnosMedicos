@@ -41,15 +41,25 @@ namespace SistemaSaludGoya.Controllers
                 new Claim("Rol", resultado.RolNombre ?? "")
             };
 
+            var usuarioRol = resultado.Usuario.UsuarioRoles.FirstOrDefault();
+
+            if (usuarioRol != null && usuarioRol.Rol.RolPermisos != null)
+            {
+                foreach (var rp in usuarioRol.Rol.RolPermisos)
+                {
+                    claims.Add(new Claim("Permiso", rp.Permiso.Nombre));
+                }
+            }
+
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             return resultado.RolNombre switch
             {
-                "Medico" => RedirectToAction("Dashboard", "Medico"),
-                "Recepcionista" => RedirectToAction("Dashboard", "Recepcionista"),
-                "Administrador" => RedirectToAction("Dashboard", "Admin"),
+                "medico" => RedirectToAction("Dashboard", "Medico"),
+                "recepcionista" => RedirectToAction("Dashboard", "Recepcionista"),
+                "administrador" => RedirectToAction("Dashboard", "Admin"),
                 _ => RedirectToAction("Index", "Home")
             };
         }
