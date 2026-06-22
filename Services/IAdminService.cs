@@ -21,5 +21,7 @@ namespace SistemaSaludGoya.Services
         Task<(bool Ok, string Mensaje)> AnadirPersonalAsync(AnadirPersonalVM model);
 
         Task<List<EspecialidadCheckVM>> ObtenerEspecialidadesAsync();
+
+        Task<InformeTurnosVM> ObtenerInformeTurnosAsync(DateTime desde, DateTime hasta);
     }
 }

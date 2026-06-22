@@ -22,6 +22,18 @@ namespace SistemaSaludGoya.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Informes(string? fechaDesde, string? fechaHasta)
+        {
+            DateTime desde = string.IsNullOrEmpty(fechaDesde) ? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1) : DateTime.Parse(fechaDesde);
+            DateTime hasta = string.IsNullOrEmpty(fechaHasta) ? DateTime.Now.Date : DateTime.Parse(fechaHasta);
+
+            if (hasta < desde) hasta = desde;
+
+            var vm = await _adminService.ObtenerInformeTurnosAsync(desde, hasta);
+            return View(vm);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> AprobarUsuario(int idUsuario)
         {
             var vm = await _adminService.ObtenerUsuarioParaAprobarAsync(idUsuario);

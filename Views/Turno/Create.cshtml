@@ -120,150 +120,168 @@
 </div>
 
 @section Scripts {
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css" />
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-<style>
-    .flatpickr-calendar { font-family:'Inter',sans-serif; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,0.15); }
-    .flatpickr-day.selected, .flatpickr-day.selected:hover { background:#2A6F97; border-color:#2A6F97; }
-    .flatpickr-day.flatpickr-disabled { color:#d1d5db; text-decoration:line-through; opacity:0.5; cursor:not-allowed; }
-</style>
-<script>
-    const selEsp       = document.getElementById('sel-especialidad');
-    const selMedico    = document.getElementById('sel-medico');
-    const inpFecha     = document.getElementById('inp-fecha');
-    const diasHint     = document.getElementById('dias-habiles-hint');
-    const horariosCont = document.getElementById('horarios-container');
-    const inpHora      = document.getElementById('inp-hora');
-    const btnSubmit    = document.getElementById('btn-submit');
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css" />
+    
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    let fpInstance = null;
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
-    function initFlatpickr() {
-        if (fpInstance) fpInstance.destroy();
-        fpInstance = flatpickr(inpFecha, {
-            locale: 'es',
-            dateFormat: 'Y-m-d',
-            minDate: 'today',
-            maxDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
-            onChange: async function(selectedDates, dateStr) {
-                inpFecha.value = dateStr;
-                if (dateStr && selMedico.value) {
-                    await cargarHorarios(selMedico.value, dateStr);
-                } else {
-                    limpiarHorarios();
-                }
-            }
-        });
-        inpFecha.disabled = false;
-        inpFecha.placeholder = 'Elegí cualquier fecha...';
-    }
-
-    selEsp.addEventListener('change', async function () {
-        const id = this.value;
-        selMedico.innerHTML = '<option value="">Cargando...</option>';
-        selMedico.disabled = true;
-        inpFecha.disabled  = true;
-        inpFecha.value     = '';
-        diasHint.style.display = 'none';
-        limpiarHorarios();
-        if (fpInstance) { fpInstance.destroy(); fpInstance = null; }
-
-        if (!id) {
-            selMedico.innerHTML = '<option value="">— Primero elegí especialidad —</option>';
-            return;
-        }
-
-        const resp   = await fetch(`/Turno/ObtenerMedicosPorEspecialidad?idEspecialidad=${id}`);
-        const medicos = await resp.json();
-        selMedico.innerHTML = '<option value="">— Seleccioná un profesional —</option>';
-        medicos.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m.idMedico;
-            opt.textContent = `Dr/a. ${m.nombre}`;
-            selMedico.appendChild(opt);
-        });
-        selMedico.disabled = medicos.length === 0;
-        if (medicos.length === 0) selMedico.innerHTML = '<option value="">Sin profesionales disponibles</option>';
-    });
-
-    selMedico.addEventListener('change', function () {
-        inpFecha.value = '';
-        limpiarHorarios();
-        diasHint.style.display = 'none';
-        if (fpInstance) { fpInstance.destroy(); fpInstance = null; }
-
-        if (!this.value) { inpFecha.disabled = true; return; }
+    <style>
+        .flatpickr-calendar { font-family:'Inter',sans-serif; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,0.15); }
+        .flatpickr-day.selected, .flatpickr-day.selected:hover { background:#2A6F97; border-color:#2A6F97; }
+        .flatpickr-day.flatpickr-disabled { color:#d1d5db; text-decoration:line-through; opacity:0.5; cursor:not-allowed; }
         
-        diasHint.innerHTML = `💡 Seleccioná el día para ver si hay capacidad o excepciones.`;
-        diasHint.style.cssText = 'display:block;font-size:0.75rem;color:#2e7d32;margin-top:0.25rem;';
-        initFlatpickr();
-    });
+        .select2-container .select2-selection--single { height: 42px; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 0.35rem 0.5rem; outline: none; }
+        .select2-container--default .select2-selection--single .select2-selection__arrow { top: 7px; right: 8px; }
+        .select2-container--default .select2-selection--single:focus { border-color: #2A6F97; box-shadow: 0 0 0 3px rgba(42,111,151,0.1); }
+    </style>
 
-    async function cargarHorarios(medicoId, fecha) {
-        horariosCont.innerHTML = '<p class="horarios-loading">⏳ Comprobando capacidad y excepciones...</p>';
-        inpHora.value = '';
-        actualizarSubmit();
+    <script>
+        const selEsp       = document.getElementById('sel-especialidad');
+        const selMedico    = document.getElementById('sel-medico');
+        const inpFecha     = document.getElementById('inp-fecha');
+        const diasHint     = document.getElementById('dias-habiles-hint');
+        const horariosCont = document.getElementById('horarios-container');
+        const inpHora      = document.getElementById('inp-hora');
+        const btnSubmit    = document.getElementById('btn-submit');
 
-        const resp = await fetch(`/Turno/ObtenerHorariosOcupados?medicoId=${medicoId}&fecha=${fecha}`);
-        const data = await resp.json();
+        let fpInstance = null;
 
-        if (!data.disponible && (!data.slots || data.slots.length === 0)) {
-            horariosCont.innerHTML = `<p class="horarios-loading">😕 ${data.mensaje || 'No hay horarios disponibles para este día.'}</p>`;
-            return;
+        $(document).ready(function() {
+            $('#sel-especialidad').select2({
+                placeholder: "— Buscá una especialidad (Ej: Cardiología) —",
+                width: '100%',
+                language: { noResults: function() { return "No se encontró la especialidad"; } }
+            });
+
+            $('#sel-especialidad').on('change', async function () {
+                const id = this.value;
+                selMedico.innerHTML = '<option value="">Cargando...</option>';
+                selMedico.disabled = true;
+                inpFecha.disabled  = true;
+                inpFecha.value     = '';
+                diasHint.style.display = 'none';
+                limpiarHorarios();
+                if (fpInstance) { fpInstance.destroy(); fpInstance = null; }
+
+                if (!id) {
+                    selMedico.innerHTML = '<option value="">— Primero elegí especialidad —</option>';
+                    return;
+                }
+
+                const resp   = await fetch(`/Turno/ObtenerMedicosPorEspecialidad?idEspecialidad=${id}`);
+                const medicos = await resp.json();
+                selMedico.innerHTML = '<option value="">— Seleccioná un profesional —</option>';
+                medicos.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.idMedico;
+                    opt.textContent = `Dr/a. ${m.nombre}`;
+                    selMedico.appendChild(opt);
+                });
+                selMedico.disabled = medicos.length === 0;
+                if (medicos.length === 0) selMedico.innerHTML = '<option value="">Sin profesionales disponibles</option>';
+            });
+        });
+        
+        function initFlatpickr() {
+            if (fpInstance) fpInstance.destroy();
+            fpInstance = flatpickr(inpFecha, {
+                locale: 'es',
+                dateFormat: 'Y-m-d',
+                minDate: 'today',
+                maxDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
+                onChange: async function(selectedDates, dateStr) {
+                    inpFecha.value = dateStr;
+                    if (dateStr && selMedico.value) {
+                        await cargarHorarios(selMedico.value, dateStr);
+                    } else {
+                        limpiarHorarios();
+                    }
+                }
+            });
+            inpFecha.disabled = false;
+            inpFecha.placeholder = 'Elegí cualquier fecha...';
         }
 
-        const grid = document.createElement('div');
-        grid.className = 'horarios-grid';
+        selMedico.addEventListener('change', function () {
+            inpFecha.value = '';
+            limpiarHorarios();
+            diasHint.style.display = 'none';
+            if (fpInstance) { fpInstance.destroy(); fpInstance = null; }
 
-        data.slots.forEach(slot => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
+            if (!this.value) { inpFecha.disabled = true; return; }
             
-            const horaSpan = document.createElement('span');
-            horaSpan.textContent = slot.texto;
-            btn.appendChild(horaSpan);
-
-            if (slot.ocupado) {
-                btn.className = 'slot-btn ocupado';
-                btn.disabled = true;
-                
-                const estadoSpan = document.createElement('span');
-                estadoSpan.textContent = '❌ Sin cupo';
-                estadoSpan.style.fontSize = '0.75rem';
-                btn.appendChild(estadoSpan);
-            } else {
-                btn.className = 'slot-btn';
-                btn.dataset.hora = slot.hora;
-                
-                const estadoSpan = document.createElement('span');
-                estadoSpan.textContent = '✅ Disponible';
-                estadoSpan.style.fontSize = '0.75rem';
-                estadoSpan.style.color = '#2e7d32';
-                btn.appendChild(estadoSpan);
-
-                btn.addEventListener('click', function () {
-                    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
-                    this.classList.add('selected');
-                    inpHora.value = this.dataset.hora.length === 5 ? this.dataset.hora + ':00' : this.dataset.hora;
-                    actualizarSubmit();
-                });
-            }
-            grid.appendChild(btn);
+            diasHint.innerHTML = `💡 Seleccioná el día para ver si hay capacidad o excepciones.`;
+            diasHint.style.cssText = 'display:block;font-size:0.75rem;color:#2e7d32;margin-top:0.25rem;';
+            initFlatpickr();
         });
-        horariosCont.innerHTML = '';
-        horariosCont.appendChild(grid);
-    }
 
-    function limpiarHorarios() {
-        horariosCont.innerHTML = '<p class="horarios-loading">Seleccioná un médico y fecha para ver disponibilidad.</p>';
-        inpHora.value = '';
-        actualizarSubmit();
-    }
+        async function cargarHorarios(medicoId, fecha) {
+            horariosCont.innerHTML = '<p class="horarios-loading">⏳ Comprobando capacidad y excepciones...</p>';
+            inpHora.value = '';
+            actualizarSubmit();
 
-    function actualizarSubmit() {
-        btnSubmit.disabled = !selMedico.value || !inpFecha.value || !inpHora.value;
-    }
-</script>
+            const resp = await fetch(`/Turno/ObtenerHorariosOcupados?medicoId=${medicoId}&fecha=${fecha}`);
+            const data = await resp.json();
+
+            if (!data.disponible && (!data.slots || data.slots.length === 0)) {
+                horariosCont.innerHTML = `<p class="horarios-loading">😕 ${data.mensaje || 'No hay horarios disponibles para este día.'}</p>`;
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'horarios-grid';
+
+            data.slots.forEach(slot => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                
+                const horaSpan = document.createElement('span');
+                horaSpan.textContent = slot.texto;
+                btn.appendChild(horaSpan);
+
+                if (slot.ocupado) {
+                    btn.className = 'slot-btn ocupado';
+                    btn.disabled = true;
+                    
+                    const estadoSpan = document.createElement('span');
+                    estadoSpan.textContent = '❌ Sin cupo';
+                    estadoSpan.style.fontSize = '0.75rem';
+                    btn.appendChild(estadoSpan);
+                } else {
+                    btn.className = 'slot-btn';
+                    btn.dataset.hora = slot.hora;
+                    
+                    const estadoSpan = document.createElement('span');
+                    estadoSpan.textContent = '✅ Disponible';
+                    estadoSpan.style.fontSize = '0.75rem';
+                    estadoSpan.style.color = '#2e7d32';
+                    btn.appendChild(estadoSpan);
+
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+                        this.classList.add('selected');
+                        inpHora.value = this.dataset.hora.length === 5 ? this.dataset.hora + ':00' : this.dataset.hora;
+                        actualizarSubmit();
+                    });
+                }
+                grid.appendChild(btn);
+            });
+            horariosCont.innerHTML = '';
+            horariosCont.appendChild(grid);
+        }
+
+        function limpiarHorarios() {
+            horariosCont.innerHTML = '<p class="horarios-loading">Seleccioná un médico y fecha para ver disponibilidad.</p>';
+            inpHora.value = '';
+            actualizarSubmit();
+        }
+
+        function actualizarSubmit() {
+            btnSubmit.disabled = !selMedico.value || !inpFecha.value || !inpHora.value;
+        }
+    </script>
 }

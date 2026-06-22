@@ -243,5 +243,26 @@ namespace SistemaSaludGoya.Services
                 .Select(e => new EspecialidadCheckVM { IdEspecialidad = e.IdEspecialidad, Nombre = e.Nombre })
                 .ToListAsync();
         }
+
+        public async Task<InformeTurnosVM> ObtenerInformeTurnosAsync(DateTime desde, DateTime hasta)
+        {
+            var hastaFinDia = hasta.Date.AddDays(1).AddTicks(-1);
+
+            var turnosDelRango = await _context.Turnos
+                .Where(t => t.FechaHora >= desde.Date && t.FechaHora <= hastaFinDia)
+                .ToListAsync();
+
+            return new InformeTurnosVM
+            {
+                FechaDesde = desde,
+                FechaHasta = hasta,
+                TotalTurnos = turnosDelRango.Count,
+                TurnosAtendidos = turnosDelRango.Count(t => t.Estado == EstadoTurno.Atendido),
+                TurnosCancelados = turnosDelRango.Count(t => t.Estado == EstadoTurno.Cancelado),
+
+                TurnosAusentes = turnosDelRango.Count(t => t.Estado == EstadoTurno.Ausente)
+            };
+        }
+
     }
 }

@@ -1,0 +1,75 @@
+﻿@model SistemaSaludGoya.ViewModel.InformeTurnosVM
+@{
+    ViewData["Title"] = "Informes del Sistema";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .page-tag { display:inline-block; background:#e3f2fd; color:#1565c0; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .page-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; }
+    
+    .filter-card { background:white; border-radius:16px; padding:1.25rem; box-shadow:0 4px 20px rgba(0,0,0,0.06); margin-bottom:2rem; display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; }
+    .form-group { display:flex; flex-direction:column; gap:0.4rem; flex:1; min-width:200px; }
+    .form-label { font-size:0.8rem; font-weight:600; color:#374151; text-transform:uppercase; }
+    .form-input { padding:0.65rem 0.9rem; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.9rem; outline:none; }
+    .btn-filtrar { background:#2A6F97; color:white; border:none; padding:0.7rem 1.5rem; border-radius:10px; font-weight:700; cursor:pointer; height:42px; }
+    
+    .report-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; }
+    .report-card { background:white; border-radius:16px; padding:1.5rem; border:1px solid #f0f4f7; display:flex; flex-direction:column; }
+    .rep-title { font-size:0.8rem; color:#64748b; font-weight:600; text-transform:uppercase; margin-bottom:0.5rem; }
+    .rep-value { font-size:2.5rem; font-weight:800; color:#1a3a4f; line-height:1; }
+    
+    .val-cancelado { color:#c62828; }
+    .val-atendido { color:#2e7d32; }
+</style>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+    <div>
+        <span class="page-tag">📊 Estadísticas</span>
+        <h1 class="page-title" style="margin-bottom:0;">Informe de Turnos</h1>
+    </div>
+    <a asp-action="Dashboard" class="btn-filtrar" style="text-decoration:none; background:#f1f5f9; color:#475569;">← Volver al Panel</a>
+</div>
+
+<div class="filter-card">
+    <form method="get" asp-action="Informes" style="display:flex; gap:1rem; width:100%; align-items:flex-end; flex-wrap:wrap;">
+        <div class="form-group">
+            <label class="form-label">Desde la fecha</label>
+            <input type="text" name="fechaDesde" id="fechaDesde" class="form-input" value="@Model.FechaDesde.ToString("yyyy-MM-dd")" placeholder="dd/mm/aaaa" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Hasta la fecha</label>
+            <input type="text" name="fechaHasta" id="fechaHasta" class="form-input" value="@Model.FechaHasta.ToString("yyyy-MM-dd")" placeholder="dd/mm/aaaa" />
+        </div>
+        <button type="submit" class="btn-filtrar">🔍 Generar Informe</button>
+    </form>
+</div>
+
+<div class="report-grid">
+    <div class="report-card">
+        <span class="rep-title">Total Generados</span>
+        <span class="rep-value">@Model.TotalTurnos</span>
+    </div>
+    <div class="report-card">
+        <span class="rep-title">Atendidos / Completados</span>
+        <span class="rep-value val-atendido">@Model.TurnosAtendidos</span>
+    </div>
+    <div class="report-card">
+        <span class="rep-title">Cancelados</span>
+        <span class="rep-value val-cancelado">@Model.TurnosCancelados</span>
+    </div>
+    <div class="report-card">
+        <span class="rep-title">Ausentes (No asistió)</span>
+        <span class="rep-value" style="color:#e65100;">@Model.TurnosAusentes</span>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script>
+        flatpickr("#fechaDesde", { locale: "es", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y" });
+        flatpickr("#fechaHasta", { locale: "es", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y" });
+    </script>
+}
