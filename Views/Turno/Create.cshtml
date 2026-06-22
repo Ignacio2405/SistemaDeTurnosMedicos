@@ -130,7 +130,7 @@
                 <button type="submit" class="btn-submit" id="btn-submit" disabled>
                     📅 Confirmar turno
                 </button>
-                <a asp-controller="Turnos" asp-action="Index" class="btn-volver" id="link-volver">
+                <a asp-controller="Turno" asp-action="Index" class="btn-volver" id="link-volver">
                     ← Volver a mis turnos
                 </a>
             </div>
@@ -204,7 +204,7 @@
             return;
         }
 
-        const resp   = await fetch(`/Turnos/ObtenerMedicosPorEspecialidad?idEspecialidad=${id}`);
+        const resp   = await fetch(`/Turno/ObtenerMedicosPorEspecialidad?idEspecialidad=${id}`);
         const medicos = await resp.json();
         selMedico.innerHTML = '<option value="">— Seleccioná un profesional —</option>';
         medicos.forEach(m => {
@@ -228,7 +228,7 @@
         if (!medicoId) { inpFecha.disabled = true; return; }
 
         // Obtener días hábiles del médico
-        const resp = await fetch(`/Turnos/ObtenerDiasHabiles?medicoId=${medicoId}`);
+        const resp = await fetch(`/Turno/ObtenerDiasHabiles?medicoId=${medicoId}`);
         diasTrabajados = await resp.json();
 
         if (diasTrabajados.length === 0) {
@@ -249,7 +249,7 @@
         inpHora.value = '';
         actualizarSubmit();
 
-        const resp = await fetch(`/Turnos/ObtenerHorariosOcupados?medicoId=${medicoId}&fecha=${fecha}`);
+        const resp = await fetch(`/Turno/ObtenerHorariosOcupados?medicoId=${medicoId}&fecha=${fecha}`);
         const data = await resp.json();
 
         if (!data.slots || data.slots.length === 0) {
