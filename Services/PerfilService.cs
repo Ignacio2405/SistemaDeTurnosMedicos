@@ -24,6 +24,7 @@ namespace SistemaSaludGoya.Services
             var usuario = await _context.Usuarios
                 .Include(u => u.Paciente)
                 .Include(u => u.Medico).ThenInclude(m => m!.Horarios)
+                .Include(u => u.Medico).ThenInclude(m => m!.ExcepcionesHorarias)
                 .FirstOrDefaultAsync(u => u.IdUsuario == idUsuario);
 
             if (usuario == null) return null;
@@ -42,16 +43,35 @@ namespace SistemaSaludGoya.Services
                 Matricula = usuario.Medico?.Matricula,
                 Horarios = DiasOrdenados.Select(d =>
                 {
-                    var h = usuario.Medico?.Horarios.FirstOrDefault(x => x.DiaSemana == d.Dia);
+                    var hs = usuario.Medico?.Horarios.Where(x => x.DiaSemana == d.Dia).OrderBy(x => x.HoraDesde).ToList() ?? new List<HorarioAtencion>();
+
+                    // Formateo ESTRICTO 24hs (evita cualquier bug de AM/PM)
+                    var bloques = hs.Select(h => new HorarioBloqueVM
+                    {
+                        HoraDesde = $"{h.HoraDesde.Hours:D2}:{h.HoraDesde.Minutes:D2}",
+                        HoraHasta = $"{h.HoraHasta.Hours:D2}:{h.HoraHasta.Minutes:D2}",
+                        Capacidad = h.Capacidad
+                    }).ToList();
+
+                    // Si no tiene bloques guardados, le damos uno vacío por defecto para la UI
+                    if (!bloques.Any()) bloques.Add(new HorarioBloqueVM());
+
                     return new HorarioDiaVM
                     {
                         DiaSemana = d.Dia,
                         NombreDia = d.Nombre,
-                        Activo = h != null,
-                        HoraDesde = h != null ? $"{h.HoraDesde.Hours:D2}:{h.HoraDesde.Minutes:D2}" : "08:00",
-                        HoraHasta = h != null ? $"{h.HoraHasta.Hours:D2}:{h.HoraHasta.Minutes:D2}" : "13:00",
+                        Activo = hs.Any(),
+                        Bloques = bloques
                     };
-                }).ToList()
+                }).ToList(),
+                Excepciones = usuario.Medico?.ExcepcionesHorarias.Select(e => new HorarioExcepcionVM
+                {
+                    Fecha = e.Fecha,
+                    Trabaja = e.Trabaja,
+                    Capacidad = e.Capacidad,
+                    HoraDesde = e.HoraDesde.HasValue ? $"{e.HoraDesde.Value.Hours:D2}:{e.HoraDesde.Value.Minutes:D2}" : null,
+                    HoraHasta = e.HoraHasta.HasValue ? $"{e.HoraHasta.Value.Hours:D2}:{e.HoraHasta.Value.Minutes:D2}" : null
+                }).ToList() ?? new List<HorarioExcepcionVM>()
             };
         }
 
@@ -96,38 +116,51 @@ namespace SistemaSaludGoya.Services
             return (true, "Perfil actualizado correctamente.", false);
         }
 
-        public async Task<(bool Ok, string Mensaje)> GuardarHorariosAsync(int idUsuario, List<bool> diasActivos, List<string> horasDesde, List<string> horasHasta)
+        public async Task<(bool Ok, string Mensaje)> GuardarHorariosAsync(int idUsuario, GuardarHorariosDTO request)
         {
             var medico = await _context.Medicos
                 .Include(m => m.Horarios)
+                .Include(m => m.ExcepcionesHorarias)
                 .FirstOrDefaultAsync(m => m.IdUsuario == idUsuario);
 
             if (medico == null) return (false, "Médico no encontrado.");
 
             _context.HorariosAtencion.RemoveRange(medico.Horarios);
-            await _context.SaveChangesAsync();
 
-            for (int i = 0; i < DiasOrdenados.Length; i++)
+            // MAGIA ACÁ: Usamos el DiaSemana correcto mandado desde JS resolviendo el bug.
+            foreach (var dia in request.HorariosDefecto.Where(x => x.Activo))
             {
-                if (i < diasActivos.Count && diasActivos[i])
+                foreach (var b in dia.Bloques)
                 {
-                    var desdeStr = i < horasDesde.Count ? horasDesde[i] : "08:00";
-                    var hastaStr = i < horasHasta.Count ? horasHasta[i] : "13:00";
-                    if (TimeSpan.TryParse(desdeStr, out var desde) && TimeSpan.TryParse(hastaStr, out var hasta) && desde < hasta)
+                    if (TimeSpan.TryParse(b.HoraDesde, out var desde) && TimeSpan.TryParse(b.HoraHasta, out var hasta))
                     {
                         _context.HorariosAtencion.Add(new HorarioAtencion
                         {
                             IdMedico = medico.IdMedico,
-                            DiaSemana = DiasOrdenados[i].Dia,
+                            DiaSemana = dia.DiaSemana, // Ya no usa un índice roto
                             HoraDesde = desde,
-                            HoraHasta = hasta
+                            HoraHasta = hasta,
+                            Capacidad = b.Capacidad
                         });
                     }
                 }
             }
 
+            _context.HorariosExcepciones.RemoveRange(medico.ExcepcionesHorarias);
+            foreach (var exc in request.Excepciones)
+            {
+                var excepcion = new HorarioExcepcion { IdMedico = medico.IdMedico, Fecha = DateTime.SpecifyKind(exc.Fecha, DateTimeKind.Utc), Trabaja = exc.Trabaja };
+                if (exc.Trabaja)
+                {
+                    if (TimeSpan.TryParse(exc.HoraDesde, out var desde)) excepcion.HoraDesde = desde;
+                    if (TimeSpan.TryParse(exc.HoraHasta, out var hasta)) excepcion.HoraHasta = hasta;
+                    excepcion.Capacidad = exc.Capacidad ?? 1;
+                }
+                _context.HorariosExcepciones.Add(excepcion);
+            }
+
             await _context.SaveChangesAsync();
-            return (true, "Horarios actualizados correctamente.");
+            return (true, "Agenda guardada correctamente.");
         }
     }
 }

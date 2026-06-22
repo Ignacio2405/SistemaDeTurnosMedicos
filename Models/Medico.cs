@@ -21,4 +21,7 @@ public class Medico
 
     public ICollection<Turno> Turnos { get; set; }
         = new List<Turno>();
+
+    public ICollection<HorarioExcepcion> ExcepcionesHorarias { get; set; } 
+        = new List<HorarioExcepcion>();
 }

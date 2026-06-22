@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SistemaSaludGoya.Data;
-using SistemaSaludGoya.ViewModel;
-using SistemaSaludGoya.Models;
+﻿using SistemaSaludGoya.ViewModel;
 
 namespace SistemaSaludGoya.Services
 {
@@ -9,6 +6,6 @@ namespace SistemaSaludGoya.Services
     {
         Task<EditarPerfilVM?> ObtenerPerfilAsync(int idUsuario, string rol);
         Task<(bool Ok, string Mensaje, bool EmailDuplicado)> GuardarPerfilAsync(int idUsuario, EditarPerfilVM model);
-        Task<(bool Ok, string Mensaje)> GuardarHorariosAsync(int idUsuario, List<bool> diasActivos, List<string> horasDesde, List<string> horasHasta);
+        Task<(bool Ok, string Mensaje)> GuardarHorariosAsync(int idUsuario, GuardarHorariosDTO request);
     }
 }

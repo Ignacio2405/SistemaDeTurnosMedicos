@@ -57,40 +57,54 @@ public class AuthService : IAuthService
         return (null, null, "Tu cuenta está pendiente de aprobación por un administrador.");
     }
 
-    public async Task<bool> RegistrarPacienteAsync(RegisterPacienteVM model)
+    public async Task<(bool Ok, string Mensaje)> RegistrarPacienteAsync(RegisterPacienteVM model)
     {
-        bool existe = await _context.Usuarios.AnyAsync(u => u.Email == model.Email);
-        if (existe) return false;
+        bool emailExiste = await _context.Usuarios.AnyAsync(u => u.Email == model.Email);
+        if (emailExiste) return (false, "Ya existe un usuario registrado con este correo electrónico.");
 
-        var usuario = new Usuario
-        {
-            Nombre = model.Nombre,
-            Apellido = model.Apellido,
-            Email = model.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-            Activo = true
-        };
-        _context.Usuarios.Add(usuario);
-        await _context.SaveChangesAsync();
+        bool dniExiste = await _context.Pacientes.AnyAsync(p => p.Dni == model.Dni);
+        if (dniExiste) return (false, "El DNI ingresado ya se encuentra registrado en el sistema.");
 
-        var paciente = new Paciente
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            IdUsuario = usuario.IdUsuario,
-            Dni = model.Dni,
-            FechaNacimiento = model.FechaNacimiento.ToUniversalTime(),
-            Telefono = model.Telefono,
-            Direccion = model.Direccion
-        };
-        _context.Pacientes.Add(paciente);
+            var usuario = new Usuario
+            {
+                Nombre = model.Nombre,
+                Apellido = model.Apellido,
+                Email = model.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                Activo = true
+            };
+            _context.Usuarios.Add(usuario);
+            await _context.SaveChangesAsync();
 
-        var rolPaciente = await _context.Roles.FirstOrDefaultAsync(r => r.Nombre == "paciente");
-        if (rolPaciente != null)
-        {
-            _context.UsuariosRoles.Add(new UsuarioRol { IdUsuario = usuario.IdUsuario, IdRol = rolPaciente.IdRol });
+            var paciente = new Paciente
+            {
+                IdUsuario = usuario.IdUsuario,
+                Dni = model.Dni,
+                FechaNacimiento = model.FechaNacimiento.ToUniversalTime(),
+                Telefono = model.Telefono,
+                Direccion = model.Direccion
+            };
+            _context.Pacientes.Add(paciente);
+
+            var rolPaciente = await _context.Roles.FirstOrDefaultAsync(r => r.Nombre == "paciente");
+            if (rolPaciente != null)
+            {
+                _context.UsuariosRoles.Add(new UsuarioRol { IdUsuario = usuario.IdUsuario, IdRol = rolPaciente.IdRol });
+            }
+
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+            return (true, "Registro exitoso.");
         }
-
-        await _context.SaveChangesAsync();
-        return true;
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return (false, "Ocurrió un error inesperado al crear la cuenta. Por favor, intentá nuevamente.");
+        }
     }
 
     public async Task<(bool Ok, string Mensaje)> RegistrarMedicoAsync(RegisterMedicoVM model)

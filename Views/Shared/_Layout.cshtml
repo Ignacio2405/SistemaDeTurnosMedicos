@@ -10,6 +10,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
+    @{
+        // Lógica inteligente para saber cuál es el "Inicio" de cada usuario
+        string homeCtrl = "Home";
+        string homeAct = "Index";
+
+        if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            if (User.IsInRole("administrador")) { homeCtrl = "Admin"; homeAct = "Dashboard"; }
+            else if (User.IsInRole("recepcionista")) { homeCtrl = "Recepcionista"; homeAct = "Dashboard"; }
+            else if (User.IsInRole("medico")) { homeCtrl = "Medico"; homeAct = "Dashboard"; }
+        }
+    }
 
     <nav class="app-navbar">
         <div class="navbar-inner">
@@ -30,6 +42,13 @@
                                 <span class="nav-menu-header-icon">🏥</span>
                                 <span class="nav-menu-header-text">Sistema Salud Goya</span>
                             </div>
+
+                            <div class="nav-menu-section">
+                                <a class="nav-menu-item" asp-controller="@homeCtrl" asp-action="@homeAct">
+                                    <span class="item-icon">🏠</span> Ir al inicio
+                                </a>
+                            </div>
+                            <hr class="nav-menu-divider" />
 
                             @if (User.HasClaim("Permiso", "turnos.gestionar.propio"))
                             {

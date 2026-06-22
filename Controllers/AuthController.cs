@@ -72,11 +72,11 @@ namespace SistemaSaludGoya.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            bool registrado = await _authService.RegistrarPacienteAsync(model);
+            var resultado = await _authService.RegistrarPacienteAsync(model);
 
-            if (!registrado)
+            if (!resultado.Ok)
             {
-                ModelState.AddModelError("", "Ya existe un usuario con ese email");
+                ModelState.AddModelError("", resultado.Mensaje);
                 return View(model);
             }
 

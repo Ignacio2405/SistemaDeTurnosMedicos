@@ -22,32 +22,24 @@
     .form-select:focus, .form-input:focus { border-color:#2A6F97; box-shadow:0 0 0 3px rgba(42,111,151,0.1); }
     .form-select:disabled { background:#f8fafc; color:#94a3b8; cursor:not-allowed; }
 
-    .horarios-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:0.5rem; margin-top:0.25rem; }
+    .horarios-grid { display:grid; grid-template-columns:1fr; gap:0.75rem; margin-top:0.25rem; }
+    
     .slot-btn {
-        padding:0.55rem 0.4rem; border:1.5px solid #e2e8f0; border-radius:8px; background:white;
-        font-size:0.82rem; font-weight:600; color:#374151; cursor:pointer; text-align:center;
-        transition:all 0.15s; display:flex; flex-direction:column; align-items:center; gap:0.1rem; line-height:1.2;
+        padding:0.8rem 1rem; border:1.5px solid #e2e8f0; border-radius:10px; background:white;
+        font-size:0.95rem; font-weight:600; color:#374151; cursor:pointer; text-align:left;
+        transition:all 0.15s; display:flex; justify-content:space-between; align-items:center;
     }
     .slot-btn:hover:not(:disabled) { border-color:#2A6F97; background:#eef5fa; color:#2A6F97; }
     .slot-btn.selected { background:#2A6F97; color:white; border-color:#2A6F97; }
-    /* Solicitado (pendiente de confirmación) */
-    .slot-btn.pendiente {
-        background:#fff8e1; color:#e65100; border-color:#ffb300;
-        cursor:not-allowed; text-decoration:line-through; opacity:0.9;
-    }
-    /* Confirmado */
+    
+    /* Agotado / No disponible */
     .slot-btn.ocupado {
-        background:#ffebee; color:#b71c1c; border-color:#ef9a9a;
-        cursor:not-allowed; text-decoration:line-through; opacity:0.9;
+        background:#f8fafc; color:#94a3b8; border-color:#e2e8f0;
+        cursor:not-allowed; opacity:0.8;
     }
     .slot-btn:disabled { cursor:not-allowed; }
-    .slot-estado { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; }
-    .slots-legend { display:flex; gap:1rem; flex-wrap:wrap; font-size:0.75rem; margin-top:0.6rem; align-items:center; }
-    .legend-item { display:flex; align-items:center; gap:0.35rem; }
-    .legend-dot { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
 
     .horarios-loading { color:#64748b; font-size:0.85rem; padding:1rem 0; }
-    .horarios-hint  { font-size:0.78rem; color:#94a3b8; margin-top:0.25rem; }
 
     .btn-submit { background:#2A6F97; color:white; border:none; padding:0.75rem 2rem; border-radius:12px; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.18s; box-shadow:0 4px 14px rgba(42,111,151,0.25); display:inline-flex; align-items:center; gap:0.5rem; }
     .btn-submit:hover { background:#1a4f6e; transform:translateY(-1px); }
@@ -61,7 +53,7 @@
 <div class="page-header">
     <span class="page-tag">📅 Nuevo Turno</span>
     <h1 class="page-title">Solicitar turno médico</h1>
-    <p class="page-subtitle">Elegí especialidad, profesional y horario disponible</p>
+    <p class="page-subtitle">Elegí especialidad, profesional y bloque horario disponible</p>
 </div>
 
 @if (!ViewData.ModelState.IsValid)
@@ -79,8 +71,6 @@
     <div class="app-card-body">
         <form method="post" asp-action="Create" id="formTurno">
             <div class="turno-form-grid" style="margin-bottom:1.25rem;">
-
-                <!-- Especialidad -->
                 <div class="form-field">
                     <label class="form-label" for="sel-especialidad">Especialidad</label>
                     <select id="sel-especialidad" class="form-select" required>
@@ -92,7 +82,6 @@
                     </select>
                 </div>
 
-                <!-- Médico -->
                 <div class="form-field">
                     <label class="form-label" for="sel-medico">Profesional</label>
                     <select id="sel-medico" name="MedicoId" class="form-select" required disabled>
@@ -100,16 +89,13 @@
                     </select>
                 </div>
 
-                <!-- Fecha -->
                 <div class="form-field">
                     <label class="form-label" for="inp-fecha">Fecha</label>
                     <input type="text" id="inp-fecha" name="Fecha" class="form-input"
-                           placeholder="Seleccioná médico primero..."
-                           required disabled readonly />
+                           placeholder="Seleccioná médico primero..." required disabled readonly />
                     <p id="dias-habiles-hint" style="font-size:0.75rem;color:#64748b;margin-top:0.25rem;display:none;"></p>
                 </div>
 
-                <!-- Motivo -->
                 <div class="form-field">
                     <label class="form-label" for="inp-motivo">Motivo de consulta</label>
                     <input type="text" id="inp-motivo" name="Motivo" class="form-input"
@@ -117,29 +103,23 @@
                 </div>
             </div>
 
-            <!-- Horarios -->
             <div class="form-field" style="margin-bottom:1.5rem;">
-                <label class="form-label">Horario disponible</label>
+                <label class="form-label">Bloque horario</label>
                 <div id="horarios-container">
-                    <p class="horarios-loading">Seleccioná un médico y fecha para ver los horarios.</p>
+                    <p class="horarios-loading">Seleccioná un médico y fecha para ver disponibilidad.</p>
                 </div>
                 <input type="hidden" name="Hora" id="inp-hora" required />
             </div>
 
             <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
-                <button type="submit" class="btn-submit" id="btn-submit" disabled>
-                    📅 Confirmar turno
-                </button>
-                <a asp-controller="Turno" asp-action="Index" class="btn-volver" id="link-volver">
-                    ← Volver a mis turnos
-                </a>
+                <button type="submit" class="btn-submit" id="btn-submit" disabled>📅 Confirmar turno</button>
+                <a asp-controller="Turno" asp-action="Index" class="btn-volver" id="link-volver">← Volver a mis turnos</a>
             </div>
         </form>
     </div>
 </div>
 
 @section Scripts {
-<!-- Flatpickr CDN -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css" />
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -158,24 +138,15 @@
     const inpHora      = document.getElementById('inp-hora');
     const btnSubmit    = document.getElementById('btn-submit');
 
-    // Nombres para mostrar en el hint
-    const NOMBRES_DIA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-    let diasTrabajados = []; // array de ints 0-6 (DayOfWeek)
     let fpInstance = null;
 
-    function initFlatpickr(dias) {
+    function initFlatpickr() {
         if (fpInstance) fpInstance.destroy();
         fpInstance = flatpickr(inpFecha, {
             locale: 'es',
             dateFormat: 'Y-m-d',
             minDate: 'today',
             maxDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
-            disable: [
-                function(date) {
-                    // Deshabilitar si el día NO está en el horario del médico
-                    return dias.length > 0 && !dias.includes(date.getDay());
-                }
-            ],
             onChange: async function(selectedDates, dateStr) {
                 inpFecha.value = dateStr;
                 if (dateStr && selMedico.value) {
@@ -186,7 +157,7 @@
             }
         });
         inpFecha.disabled = false;
-        inpFecha.placeholder = 'Seleccioná una fecha...';
+        inpFecha.placeholder = 'Elegí cualquier fecha...';
     }
 
     selEsp.addEventListener('change', async function () {
@@ -214,77 +185,68 @@
             selMedico.appendChild(opt);
         });
         selMedico.disabled = medicos.length === 0;
-        if (medicos.length === 0)
-            selMedico.innerHTML = '<option value="">Sin profesionales disponibles</option>';
+        if (medicos.length === 0) selMedico.innerHTML = '<option value="">Sin profesionales disponibles</option>';
     });
 
-    selMedico.addEventListener('change', async function () {
-        const medicoId = this.value;
+    selMedico.addEventListener('change', function () {
         inpFecha.value = '';
         limpiarHorarios();
         diasHint.style.display = 'none';
         if (fpInstance) { fpInstance.destroy(); fpInstance = null; }
 
-        if (!medicoId) { inpFecha.disabled = true; return; }
-
-        // Obtener días hábiles del médico
-        const resp = await fetch(`/Turno/ObtenerDiasHabiles?medicoId=${medicoId}`);
-        diasTrabajados = await resp.json();
-
-        if (diasTrabajados.length === 0) {
-            // Médico sin horarios configurados — habilitar todos los días
-            diasHint.innerHTML = '⚠️ Este médico aún no configuró su horario. Se muestran todos los días.';
-            diasHint.style.cssText = 'display:block;font-size:0.75rem;color:#e65100;margin-top:0.25rem;';
-            initFlatpickr([]);
-        } else {
-            const nombres = diasTrabajados.map(d => NOMBRES_DIA[d]).join(', ');
-            diasHint.innerHTML = `📅 Días disponibles: <strong>${nombres}</strong>`;
-            diasHint.style.cssText = 'display:block;font-size:0.75rem;color:#2e7d32;margin-top:0.25rem;';
-            initFlatpickr(diasTrabajados);
-        }
+        if (!this.value) { inpFecha.disabled = true; return; }
+        
+        diasHint.innerHTML = `💡 Seleccioná el día para ver si hay capacidad o excepciones.`;
+        diasHint.style.cssText = 'display:block;font-size:0.75rem;color:#2e7d32;margin-top:0.25rem;';
+        initFlatpickr();
     });
 
     async function cargarHorarios(medicoId, fecha) {
-        horariosCont.innerHTML = '<p class="horarios-loading">⏳ Cargando horarios...</p>';
+        horariosCont.innerHTML = '<p class="horarios-loading">⏳ Comprobando capacidad y excepciones...</p>';
         inpHora.value = '';
         actualizarSubmit();
 
         const resp = await fetch(`/Turno/ObtenerHorariosOcupados?medicoId=${medicoId}&fecha=${fecha}`);
         const data = await resp.json();
 
-        if (!data.slots || data.slots.length === 0) {
-            horariosCont.innerHTML = '<p class="horarios-loading">😕 No hay horarios disponibles para este día.</p>';
+        if (!data.disponible && (!data.slots || data.slots.length === 0)) {
+            horariosCont.innerHTML = `<p class="horarios-loading">😕 ${data.mensaje || 'No hay horarios disponibles para este día.'}</p>`;
             return;
         }
 
         const grid = document.createElement('div');
         grid.className = 'horarios-grid';
+
         data.slots.forEach(slot => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.dataset.hora = slot.hora;
-
+            
             const horaSpan = document.createElement('span');
-            horaSpan.textContent = slot.hora;
+            horaSpan.textContent = slot.texto;
             btn.appendChild(horaSpan);
 
             if (slot.ocupado) {
-                // Diferenciar visualmente según el estado
-                const esSolicitado = slot.estado === 'Solicitado';
-                btn.className   = 'slot-btn ' + (esSolicitado ? 'pendiente' : 'ocupado');
-                btn.disabled    = true;
-                btn.title       = esSolicitado ? 'Turno pendiente de confirmación' : 'Turno confirmado';
-
-                const label = document.createElement('span');
-                label.className   = 'slot-estado';
-                label.textContent = esSolicitado ? '⏳ pendiente' : '✅ confirmado';
-                btn.appendChild(label);
+                btn.className = 'slot-btn ocupado';
+                btn.disabled = true;
+                
+                const estadoSpan = document.createElement('span');
+                estadoSpan.textContent = '❌ Sin cupo';
+                estadoSpan.style.fontSize = '0.75rem';
+                btn.appendChild(estadoSpan);
             } else {
                 btn.className = 'slot-btn';
+                btn.dataset.hora = slot.hora;
+                
+                const estadoSpan = document.createElement('span');
+                estadoSpan.textContent = '✅ Disponible';
+                estadoSpan.style.fontSize = '0.75rem';
+                estadoSpan.style.color = '#2e7d32';
+                btn.appendChild(estadoSpan);
+
                 btn.addEventListener('click', function () {
                     document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
                     this.classList.add('selected');
-                    inpHora.value = this.dataset.hora + ':00';
+                    inpHora.value = this.dataset.hora.length === 5 ? this.dataset.hora + ':00' : this.dataset.hora;
                     actualizarSubmit();
                 });
             }
@@ -295,7 +257,7 @@
     }
 
     function limpiarHorarios() {
-        horariosCont.innerHTML = '<p class="horarios-loading">Seleccioná un médico y fecha para ver los horarios.</p>';
+        horariosCont.innerHTML = '<p class="horarios-loading">Seleccioná un médico y fecha para ver disponibilidad.</p>';
         inpHora.value = '';
         actualizarSubmit();
     }

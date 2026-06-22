@@ -62,16 +62,13 @@ namespace SistemaSaludGoya.Controllers
 
         [HttpPost]
         [Authorize(Policy = "ModuloHorarios")]
-        public async Task<IActionResult> GuardarHorarios(List<bool> diasActivos, List<string> horasDesde, List<string> horasHasta)
+        public async Task<IActionResult> GuardarHorarios([FromBody] GuardarHorariosDTO request)
         {
             var idUsuario = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
-            var resultado = await _perfilService.GuardarHorariosAsync(idUsuario, diasActivos, horasDesde, horasHasta);
+            var resultado = await _perfilService.GuardarHorariosAsync(idUsuario, request);
 
-            if (resultado.Ok) TempData["Success"] = resultado.Mensaje;
-            else TempData["Error"] = resultado.Mensaje;
-
-            return RedirectToAction("Editar");
+            return Json(new { success = resultado.Ok, mensaje = resultado.Mensaje });
         }
     }
 }

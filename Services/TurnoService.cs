@@ -45,14 +45,46 @@ namespace SistemaSaludGoya.Services
         {
             var fechaHoraLocal = DateTime.SpecifyKind(fecha.Date.Add(hora), DateTimeKind.Local);
 
-            bool turnoOcupado = await _context.Turnos.AnyAsync(t =>
+            // 1. Evitar que EL MISMO paciente saque dos lugares en el mismo bloque exacto
+            bool pacienteYaTieneTurno = await _context.Turnos.AnyAsync(t =>
+                t.IdPaciente == idPaciente &&
                 t.IdMedico == idMedico &&
                 t.FechaHora == fechaHoraLocal &&
                 t.Estado != EstadoTurno.Cancelado &&
                 t.Estado != EstadoTurno.Atendido);
 
-            if (turnoOcupado) return (false, "El profesional ya tiene un turno en ese horario.");
+            if (pacienteYaTieneTurno)
+                return (false, "Ya tenés un turno solicitado en este exacto horario.");
 
+            // 2. Averiguar la CAPACIDAD máxima de ese bloque horario
+            int capacidadBloque = 1; // Por defecto 1
+
+            var excepcion = await _context.HorariosExcepciones
+                .FirstOrDefaultAsync(e => e.IdMedico == idMedico && e.Fecha.Date == fecha.Date && e.Trabaja && e.HoraDesde == hora);
+
+            if (excepcion != null)
+            {
+                capacidadBloque = excepcion.Capacidad ?? 1;
+            }
+            else
+            {
+                var horarioDefecto = await _context.HorariosAtencion
+                    .FirstOrDefaultAsync(h => h.IdMedico == idMedico && h.DiaSemana == fecha.DayOfWeek && h.HoraDesde == hora);
+
+                if (horarioDefecto != null) capacidadBloque = horarioDefecto.Capacidad;
+            }
+
+            // 3. Contar cuántos turnos ya están ocupados en ese bloque
+            int turnosOcupados = await _context.Turnos.CountAsync(t =>
+                t.IdMedico == idMedico &&
+                t.FechaHora == fechaHoraLocal &&
+                t.Estado != EstadoTurno.Cancelado &&
+                t.Estado != EstadoTurno.Atendido);
+
+            if (turnosOcupados >= capacidadBloque)
+                return (false, "El cupo para este horario ya está completo.");
+
+            // 4. Si pasó las pruebas, creamos el turno
             _context.Turnos.Add(new Turno
             {
                 IdMedico = idMedico,
@@ -92,43 +124,60 @@ namespace SistemaSaludGoya.Services
                 if (!DateTime.TryParse(fecha, out DateTime fechaDate))
                     return new { error = "Fecha inválida", slots = new List<object>() };
 
-                var diaSemana = fechaDate.DayOfWeek;
-                var todosHorarios = await _context.HorariosAtencion
-                    .Where(h => h.IdMedico == medicoId && h.DiaSemana == diaSemana).ToListAsync();
-
-                var turnosDelDia = await _context.Turnos
-                    .Where(t => t.IdMedico == medicoId && t.FechaHora.Date == fechaDate.Date && t.Estado != EstadoTurno.Cancelado && t.Estado != EstadoTurno.Atendido)
+                var excepciones = await _context.HorariosExcepciones
+                    .Where(e => e.IdMedico == medicoId && e.Fecha.Date == fechaDate.Date)
                     .ToListAsync();
 
-                var turnosOcupados = turnosDelDia.ToDictionary(t => t.FechaHora.ToString("HH:mm"), t => t.Estado.ToString());
+                var bloquesDelDia = new List<(TimeSpan Desde, TimeSpan Hasta, int Capacidad)>();
 
-                List<string> slots;
-                if (todosHorarios.Any())
+                if (excepciones.Any())
                 {
-                    slots = new List<string>();
-                    foreach (var h in todosHorarios)
-                    {
-                        var actual = h.HoraDesde;
-                        while (actual.Add(TimeSpan.FromMinutes(30)) <= h.HoraHasta)
-                        {
-                            slots.Add(actual.Hours.ToString("D2") + ":" + actual.Minutes.ToString("D2"));
-                            actual = actual.Add(TimeSpan.FromMinutes(30));
-                        }
-                    }
-                    slots = slots.Distinct().OrderBy(s => s).ToList();
+                    if (excepciones.Any(e => !e.Trabaja))
+                        return new { disponible = false, mensaje = "El profesional no atiende en esta fecha (Día libre)." };
+
+                    foreach (var exc in excepciones.Where(e => e.Trabaja))
+                        bloquesDelDia.Add((exc.HoraDesde ?? TimeSpan.Zero, exc.HoraHasta ?? TimeSpan.Zero, exc.Capacidad ?? 1));
                 }
                 else
                 {
-                    slots = new List<string> { "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00" };
+                    var diaSemana = fechaDate.DayOfWeek;
+                    var horariosDefecto = await _context.HorariosAtencion
+                        .Where(h => h.IdMedico == medicoId && h.DiaSemana == diaSemana)
+                        .ToListAsync();
+
+                    if (!horariosDefecto.Any())
+                        return new { disponible = false, mensaje = "El profesional no atiende en este día de la semana." };
+
+                    foreach (var h in horariosDefecto)
+                        bloquesDelDia.Add((h.HoraDesde, h.HoraHasta, h.Capacidad));
                 }
 
-                var resultado = slots.Select(s => new
+                // Buscamos los turnos ocupados
+                var turnosOcupadosTotales = await _context.Turnos
+                    .Where(t => t.IdMedico == medicoId && t.FechaHora.Date == fechaDate.Date &&
+                                t.Estado != EstadoTurno.Cancelado && t.Estado != EstadoTurno.Atendido)
+                    .Select(t => t.FechaHora.TimeOfDay)
+                    .ToListAsync();
+
+                var slots = new List<object>();
+                bool hayAlgunLugar = false;
+
+                // Generamos los botones separados por cada bloque usando estrictamente formato 24hs (Hours:D2)
+                foreach (var bloque in bloquesDelDia.OrderBy(b => b.Desde))
                 {
-                    hora = s,
-                    ocupado = turnosOcupados.ContainsKey(s),
-                    estado = turnosOcupados.ContainsKey(s) ? turnosOcupados[s] : null
-                }).ToList();
-                return new { disponible = true, slots = resultado };
+                    int ocupados = turnosOcupadosTotales.Count(t => t == bloque.Desde);
+                    bool hayLugar = ocupados < bloque.Capacidad;
+                    if (hayLugar) hayAlgunLugar = true;
+
+                    slots.Add(new
+                    {
+                        hora = $"{bloque.Desde.Hours:D2}:{bloque.Desde.Minutes:D2}",
+                        texto = $"{bloque.Desde.Hours:D2}:{bloque.Desde.Minutes:D2} a {bloque.Hasta.Hours:D2}:{bloque.Hasta.Minutes:D2} ({ocupados}/{bloque.Capacidad} ocupados)",
+                        ocupado = !hayLugar
+                    });
+                }
+
+                return new { disponible = hayAlgunLugar, slots = slots };
             }
             catch (Exception ex) { return new { error = ex.Message, slots = new List<object>() }; }
         }

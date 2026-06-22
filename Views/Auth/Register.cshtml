@@ -4,6 +4,32 @@
     Layout = "~/Views/Shared/_LayoutAuth.cshtml";
 }
 
+<style>
+    /* FIX DEFINITIVO PARA EL SCROLL */
+    html, body { 
+        height: auto !important; 
+        min-height: 100% !important;
+        overflow-y: auto !important; /* Obligamos al navegador a mostrar la barra */
+    }
+    
+    .auth-page {
+        min-height: 100vh;
+        padding: 4rem 1rem; /* Damos buen espacio arriba y abajo */
+        display: flex;
+        justify-content: center;
+        /* EL SECRETO ESTÁ ACÁ: 'flex-start' evita que Flexbox corte el formulario cuando es muy largo */
+        align-items: flex-start; 
+    }
+    
+    .auth-card-wide {
+        margin: auto; /* Esto vuelve a centrar visualmente la tarjeta si sobra espacio, sin romper el scroll */
+    }
+
+    /* Estilos del calendario de Fecha de Nacimiento */
+    .flatpickr-calendar { font-family:'Inter',sans-serif; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,0.15); }
+    .flatpickr-day.selected, .flatpickr-day.selected:hover { background:#2A6F97; border-color:#2A6F97; }
+</style>
+
 <div class="auth-page">
     <div class="auth-card auth-card-wide">
 
@@ -14,12 +40,11 @@
             <p class="auth-subtitle">Completá tus datos para registrarte en el sistema</p>
         </div>
 
-        <form asp-action="Register" method="post">
+        <form asp-action="Register" method="post" autocomplete="off">
             <div class="alert-error-custom">
                 @Html.ValidationSummary(true, "", new { @class = "" })
             </div>
 
-            <!-- Nombre y Apellido -->
             <div class="form-grid-two">
                 <div class="form-group-custom">
                     <label class="form-label-custom">Nombre</label>
@@ -39,7 +64,6 @@
                 </div>
             </div>
 
-            <!-- Email -->
             <div class="form-group-custom">
                 <label class="form-label-custom">Correo electrónico</label>
                 <div class="input-wrapper">
@@ -49,7 +73,6 @@
                 <span asp-validation-for="Email" class="validation-msg"></span>
             </div>
 
-            <!-- Password y DNI -->
             <div class="form-grid-two">
                 <div class="form-group-custom">
                     <label class="form-label-custom">Contraseña</label>
@@ -69,13 +92,12 @@
                 </div>
             </div>
 
-            <!-- Fecha nacimiento y Teléfono -->
             <div class="form-grid-two">
                 <div class="form-group-custom">
                     <label class="form-label-custom">Fecha de nacimiento</label>
                     <div class="input-wrapper">
                         <span class="input-icon">🎂</span>
-                        <input asp-for="FechaNacimiento" type="date" class="form-input-custom" required />
+                        <input asp-for="FechaNacimiento" type="text" id="inp-fecha-nacimiento" class="form-input-custom" placeholder="dd/mm/aaaa" required />
                     </div>
                     <span asp-validation-for="FechaNacimiento" class="validation-msg"></span>
                 </div>
@@ -88,7 +110,6 @@
                 </div>
             </div>
 
-            <!-- Dirección -->
             <div class="form-group-custom">
                 <label class="form-label-custom">Dirección <span style="font-weight:400;text-transform:none;font-size:0.7rem;color:#94a3b8;">(opcional)</span></label>
                 <div class="input-wrapper">
@@ -97,7 +118,6 @@
                 </div>
             </div>
 
-            <!-- Divider info -->
             <div style="background:#eef5fa;border-radius:10px;padding:0.65rem 0.9rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;font-size:0.81rem;color:#2A6F97;">
                 <span>🔐</span>
                 <span>Tu información está protegida y es confidencial.</span>
@@ -122,4 +142,21 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    
+    <script>
+        // Inicializamos el calendario con el formato argentino visible, pero enviando el formato universal al servidor
+        flatpickr("#inp-fecha-nacimiento", {
+            locale: "es",
+            dateFormat: "Y-m-d",     // Lo que lee el servidor (C#)
+            altInput: true,          // Crea un input secundario visible
+            altFormat: "d/m/Y",      // Lo que ve el usuario (Día/Mes/Año)
+            maxDate: "today",        // No permite fechas en el futuro
+            disableMobile: "true"    // Fuerza usar este estilo en celulares
+        });
+    </script>
 }

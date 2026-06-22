@@ -6,6 +6,8 @@ public class HorarioAtencion
 
     public int IdMedico { get; set; }
 
+    public int Capacidad { get; set; }
+
     public DayOfWeek DiaSemana { get; set; }
 
     public TimeSpan HoraDesde { get; set; }
