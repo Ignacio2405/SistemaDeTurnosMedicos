@@ -29,15 +29,7 @@ public class EditarPerfilVM
     // Campos médico
     public string? Matricula { get; set; }
 
-    // Horarios del médico — un registro por día seleccionado
+    // Horarios del médico y Excepciones
     public List<HorarioDiaVM> Horarios { get; set; } = new();
-}
-
-public class HorarioDiaVM
-{
-    public DayOfWeek DiaSemana { get; set; }
-    public string NombreDia { get; set; } = "";
-    public bool Activo { get; set; }
-    public string HoraDesde { get; set; } = "08:00";
-    public string HoraHasta { get; set; } = "13:00";
+    public List<HorarioExcepcionVM> Excepciones { get; set; } = new();
 }

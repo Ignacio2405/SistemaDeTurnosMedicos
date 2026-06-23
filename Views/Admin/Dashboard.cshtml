@@ -29,13 +29,42 @@
     .btn-aprobar { background:#e8f5e9; color:#2e7d32; border:1.5px solid #a5d6a7; padding:0.3rem 0.75rem; border-radius:8px; font-size:0.78rem; font-weight:600; text-decoration:none; }
     .btn-aprobar:hover { background:#2e7d32; color:white; text-decoration:none; }
     .badge-pendiente { background:#fff3e0; color:#e65100; border-radius:8px; padding:0.2rem 0.5rem; font-size:0.72rem; font-weight:700; }
+    .btn-informes {
+        background: white;
+        color: #2A6F97;
+        border: 2px solid #2A6F97;
+        padding: 0.6rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 10px rgba(42, 111, 151, 0.05);
+    }
+    .btn-informes:hover {
+        background: #2A6F97;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(42, 111, 151, 0.2);
+    }
 </style>
 
 @if (TempData["Success"] != null) { <div class="alert-app-success">✅ @TempData["Success"]</div> }
 @if (TempData["Error"] != null) { <div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;padding:0.75rem;color:#c62828;margin-bottom:1rem;">⚠️ @TempData["Error"]</div> }
 
-<span class="page-tag">⚙️ Administrador</span>
-<h1 class="page-title" style="margin-bottom:1.5rem;">Panel de control</h1>
+<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+        <span class="page-tag">⚙️ Administrador</span>
+        <h1 class="page-title" style="margin-bottom:0;">Panel de control</h1>
+    </div>
+    <a asp-controller="Admin" asp-action="Informes" class="btn-informes">
+        📊 Informes
+    </a>
+</div>
 
 <div class="stats-grid">
     <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-number" style="color:#1565c0;">@Model.TotalPacientes</div><div class="stat-label">Pacientes</div></div>

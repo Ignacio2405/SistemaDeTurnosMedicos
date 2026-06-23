@@ -36,6 +36,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Pago> Pagos => Set<Pago>();
 
+    public DbSet<HorarioExcepcion> HorariosExcepciones => Set<HorarioExcepcion>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -389,6 +391,20 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(x => x.IdTurno)
                 .IsUnique();
+        });
+
+        //--------------------------------------------------
+        // HORARIO_EXCEPCIONES
+        //--------------------------------------------------
+
+        modelBuilder.Entity<HorarioExcepcion>(entity =>
+        {
+            entity.ToTable("horario_excepcion");
+            entity.HasKey(x => x.IdHorarioExcepcion);
+
+            entity.HasOne(x => x.Medico)
+                .WithMany(m => m.ExcepcionesHorarias)
+                .HasForeignKey(x => x.IdMedico);
         });
     }
 }

@@ -2,8 +2,8 @@
 @{
     ViewData["Title"] = "Mi Perfil";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    bool esMedico = Model.Rol == "Medico";
-    bool esPaciente = Model.Rol == "Paciente";
+    bool esMedico = Model.Rol == "medico";
+    bool esPaciente = Model.Rol == "paciente";
 }
 <style>
     .perfil-header { margin-bottom:1.5rem; }
@@ -30,92 +30,99 @@
     .btn-guardar { background:linear-gradient(135deg,#2A6F97,#1a4f6e); color:white; border:none; padding:0.7rem 1.75rem; border-radius:12px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.18s; }
     .btn-guardar:hover { opacity:0.9; transform:translateY(-1px); }
 
-    /* Horarios */
-    .dia-row { display:grid; grid-template-columns:110px 1fr 1fr 1fr; align-items:center; gap:1rem; padding:0.75rem 0; border-bottom:1px solid #f0f4f7; }
+    .input-group { display: flex; gap: 0.5rem; align-items: center; }
+    .btn-edit-field { background: #f1f5f9; border: 1.5px solid #e2e8f0; padding: 0.6rem 1rem; border-radius: 10px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s; white-space: nowrap; font-size: 0.85rem; }
+    .btn-edit-field:hover { background: #e2e8f0; color: #1e293b; }
+    .form-control[readonly] { background: #f8fafc; color: #64748b; cursor: not-allowed; border-color: #f1f5f9; }
+
+    /* Horarios Mejorados */
+    .dia-row { display:grid; grid-template-columns:100px 1fr 1fr 80px; align-items:center; gap:1rem; padding:0.75rem 0; border-bottom:1px solid #f0f4f7; }
     .dia-row:last-child { border-bottom:none; }
     @@media(max-width:580px){ .dia-row{grid-template-columns:1fr; gap:0.4rem;} }
+    
     .dia-check-label { display:flex; align-items:center; gap:0.5rem; font-weight:600; font-size:0.9rem; cursor:pointer; }
     .dia-check { width:18px; height:18px; accent-color:#6a1b9a; cursor:pointer; }
     .hora-group { display:flex; flex-direction:column; gap:0.2rem; }
     .hora-label { font-size:0.7rem; font-weight:600; color:#94a3b8; text-transform:uppercase; }
     .hora-input { padding:0.45rem 0.7rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.875rem; outline:none; width:100%; }
     .hora-input:focus { border-color:#6a1b9a; }
+    .dias-desactivados input { opacity:0.4; cursor:not-allowed; }
+
+    /* Excepciones */
+    .exc-panel { background: #fafafa; border: 1px dashed #cbd5e1; padding: 1rem; border-radius: 12px; margin-top: 1rem; }
+    .exc-item { display: flex; align-items: center; justify-content: space-between; background: white; border: 1px solid #e2e8f0; padding: 0.7rem; border-radius: 8px; margin-bottom: 0.5rem; }
+    .exc-btn-del { background: #fee2e2; color: #ef4444; border: none; padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+    
     .turno-selector { display:flex; gap:0.5rem; flex-wrap:wrap; }
     .btn-turno { padding:0.35rem 0.75rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; background:white; transition:all 0.15s; }
     .btn-turno:hover { border-color:#6a1b9a; color:#6a1b9a; }
     .turno-hint { font-size:0.78rem; color:#94a3b8; margin-bottom:0.75rem; }
-    .dias-desactivados input[type=time], .dias-desactivados input[type=text] { opacity:0.3; pointer-events:none; }
 </style>
 
-@if (TempData["AlertInfo"] != null)
-{
-    <div style="background:linear-gradient(135deg,#1565c0,#0d47a1);color:white;border-radius:14px;padding:1.1rem 1.4rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;box-shadow:0 4px 20px rgba(21,101,192,0.3);">
-        <span style="font-size:1.4rem;">📋</span>
-        <div>
-            <strong style="display:block;font-size:0.95rem;">Acción requerida</strong>
-            <span style="font-size:0.875rem;opacity:0.9;">@TempData["AlertInfo"]</span>
-        </div>
-    </div>
-}
-@if (TempData["Success"] != null)
-{ <div class="alert-app-success">✅ @TempData["Success"]</div> }
+@if (TempData["Success"] != null) { <div class="alert-app-success" style="padding:1rem;background:#e8f5e9;color:#2e7d32;border-radius:10px;margin-bottom:1rem;">✅ @TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert-app-success" style="padding:1rem;background:#ffebee;color:#c62828;border-radius:10px;margin-bottom:1rem;">❌ @TempData["Error"]</div> }
 
 <div class="perfil-header">
-    @{
-        var tagClass = Model.Rol.ToLower() switch {
-            "medico" => "tag-medico", "paciente" => "tag-paciente",
-            "recepcionista" => "tag-recepcionista", _ => "tag-administrador" };
-    }
+    @{ var tagClass = Model.Rol.ToLower() switch { "medico" => "tag-medico", "paciente" => "tag-paciente", "recepcionista" => "tag-recepcionista", _ => "tag-administrador" }; }
     <span class="page-tag @tagClass">👤 @Model.Rol</span>
     <h1 class="page-title">Mi perfil</h1>
 </div>
 
-<!-- SECCIÓN: Datos personales -->
 <div class="section-card">
     <div class="section-head"><span>📋</span><h4>Datos personales</h4></div>
     <div class="section-body">
-        <form method="post" asp-action="GuardarPerfil">
+        <form method="post" asp-action="GuardarPerfil" autocomplete="off">
+            <div asp-validation-summary="All" class="text-danger" style="color:#c62828; font-weight:bold; margin-bottom:1rem; font-size:0.85rem;"></div>
             <input type="hidden" asp-for="IdUsuario" />
             <input type="hidden" asp-for="Rol" />
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="form-label">Nombre <span class="required-mark">*</span></label>
-                    <input asp-for="Nombre" class="form-control" id="perfil-nombre" />
-                    <span asp-validation-for="Nombre" style="color:#c62828;font-size:0.8rem;"></span>
+                    <label class="form-label">Nombre *</label>
+                    <input asp-for="Nombre" class="form-control" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Apellido <span class="required-mark">*</span></label>
-                    <input asp-for="Apellido" class="form-control" id="perfil-apellido" />
-                    <span asp-validation-for="Apellido" style="color:#c62828;font-size:0.8rem;"></span>
+                    <label class="form-label">Apellido *</label>
+                    <input asp-for="Apellido" class="form-control" />
                 </div>
             </div>
+
             <div class="form-group">
-                <label class="form-label">Email <span class="required-mark">*</span></label>
-                <input asp-for="Email" type="email" class="form-control" id="perfil-email" />
-                <span asp-validation-for="Email" style="color:#c62828;font-size:0.8rem;"></span>
+                <label class="form-label">Email *</label>
+                <div class="input-group">
+                    <input asp-for="Email" type="email" class="form-control" id="perfil-email" readonly />
+                    <button type="button" class="btn-edit-field" onclick="habilitarEdicion('perfil-email', this)">✏️ Cambiar</button>
+                </div>
             </div>
+
             <div class="form-group">
                 <label class="form-label">Nueva contraseña</label>
-                <input asp-for="NuevaPassword" type="password" class="form-control" placeholder="Dejá vacío para no cambiar" id="perfil-password" />
-                <p class="pass-hint">Si dejás este campo vacío, tu contraseña no cambia.</p>
+                <div class="input-group">
+                    <input asp-for="NuevaPassword" type="password" class="form-control" placeholder="Bloqueado por seguridad" id="perfil-password" readonly />
+                    <button type="button" class="btn-edit-field" onclick="habilitarEdicion('perfil-password', this)">✏️ Cambiar</button>
+                </div>
             </div>
+
             <div class="form-group">
                 <label class="form-label">Teléfono</label>
-                <input asp-for="Telefono" class="form-control" placeholder="+54 9 ..." id="perfil-telefono" />
+                <input asp-for="Telefono" class="form-control" />
             </div>
 
             @if (esPaciente)
             {
                 <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label">Fecha de nacimiento</label>
-                        <input asp-for="FechaNacimiento" type="date" class="form-control" id="perfil-nacimiento" value="@(Model.FechaNacimiento?.ToString("yyyy-MM-dd"))" />
+                        <label class="form-label">DNI</label>
+                        <input asp-for="Dni" class="form-control" />
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Dirección</label>
-                        <input asp-for="Direccion" class="form-control" placeholder="Tu dirección" id="perfil-direccion" />
+                        <label class="form-label">Nacimiento</label>
+                        <input asp-for="FechaNacimiento" type="date" class="form-control" value="@(Model.FechaNacimiento?.ToString("yyyy-MM-dd"))" />
                     </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dirección</label>
+                    <input asp-for="Direccion" class="form-control" />
                 </div>
             }
 
@@ -123,67 +130,101 @@
             {
                 <div class="form-group">
                     <label class="form-label">Matrícula</label>
-                    <input asp-for="Matricula" class="form-control" placeholder="MP-12345" id="perfil-matricula" />
+                    <input asp-for="Matricula" class="form-control" />
                 </div>
             }
 
-            <button type="submit" class="btn-guardar" id="btn-guardar-datos">💾 Guardar datos personales</button>
+            <button type="submit" class="btn-guardar" style="margin-top: 0.5rem;">💾 Guardar datos</button>
         </form>
     </div>
 </div>
 
 @if (esMedico)
 {
-    <!-- SECCIÓN: Horarios de atención -->
     <div class="section-card">
-        <div class="section-head"><span>🗓️</span><h4>Horarios de atención semanal</h4></div>
+        <div class="section-head"><span>🗓️</span><h4>Configuración de Agenda</h4></div>
         <div class="section-body">
-            <p class="turno-hint">Seleccioná los días que trabajás y el rango horario. Podés usar los atajos de turno para auto-completar.</p>
+            
+            <h5 style="font-size:1rem; color:#1a3a4f; font-weight:700;">Horario Semanal</h5>
+            <p class="turno-hint">Establecé tu capacidad (cupos) por cada rango horario.</p>
 
-            <!-- Atajos de turno -->
-            <div style="margin-bottom:1rem;">
-                <span style="font-size:0.8rem;font-weight:600;color:#374151;margin-right:0.5rem;">Atajo:</span>
-                <div class="turno-selector" style="display:inline-flex;">
-                    <button type="button" class="btn-turno" onclick="setTurno('manana')" id="btn-turno-manana">🌅 Mañana (8–13)</button>
-                    <button type="button" class="btn-turno" onclick="setTurno('tarde')" id="btn-turno-tarde">🌇 Tarde (13–20)</button>
-                    <button type="button" class="btn-turno" onclick="setTurno('ambos')" id="btn-turno-ambos">🌞 Ambos (8–20)</button>
-                </div>
-            </div>
-
-            <form method="post" asp-action="GuardarHorarios" id="formHorarios">
+            <form id="formHorarios">
                 <div id="dias-container">
                     @for (int i = 0; i < Model.Horarios.Count; i++)
                     {
                         var h = Model.Horarios[i];
-                        <div class="dia-row" id="dia-row-@i">
-                            <label class="dia-check-label">
-                                <input type="checkbox"
-                                       class="dia-check"
-                                       id="dia-activo-@i"
-                                       data-idx="@i"
-                                       @(h.Activo ? "checked" : "")
-                                       onchange="toggleDia(@i, this.checked)" />
-                                @h.NombreDia
-                            </label>
-                            <div class="hora-group">
-                                <span class="hora-label">Desde</span>
-                                <input type="time" value="@h.HoraDesde"
-                                       class="hora-input" id="hora-desde-@i"
-                                       @(h.Activo ? "" : "disabled") />
+                        // Acá está el fix: Guardamos el DiaSemana real en data-diasemana
+                        <div class="dia-row-container" data-diasemana="@((int)h.DiaSemana)" style="border-bottom:1px solid #f0f4f7; padding:1rem 0;">
+                            
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                <label class="dia-check-label">
+                                    <input type="checkbox" class="dia-check" @(h.Activo ? "checked" : "") onchange="toggleDia(this)" />
+                                    @h.NombreDia
+                                </label>
+                                <button type="button" class="btn-add-bloque" onclick="agregarBloque(this)" @(h.Activo ? "" : "disabled") style="background:#eef5fa; border:1px solid #2A6F97; color:#2A6F97; border-radius:6px; font-size:0.8rem; font-weight:bold; cursor:pointer; padding:0.3rem 0.6rem;">➕ Agregar Bloque</button>
                             </div>
-                            <div class="hora-group">
-                                <span class="hora-label">Hasta</span>
-                                <input type="time" value="@h.HoraHasta"
-                                       class="hora-input" id="hora-hasta-@i"
-                                       @(h.Activo ? "" : "disabled") />
-                            </div>
-                            <div class="dia-status" style="font-size:0.75rem;color:#94a3b8;">
-                                @(h.Activo ? "✅ Activo" : "—")
+
+                            <div class="bloques-list">
+                                @foreach (var b in h.Bloques)
+                                {
+                                    <div class="bloque-item" style="display:flex; gap:1rem; align-items:center; margin-top:0.5rem; @(h.Activo ? "" : "opacity:0.4; pointer-events:none;")">
+                                        <div class="hora-group">
+                                            <span class="hora-label">Desde</span>
+                                            <input type="time" value="@b.HoraDesde" class="hora-input hora-desde" />
+                                        </div>
+                                        <div class="hora-group">
+                                            <span class="hora-label">Hasta</span>
+                                            <input type="time" value="@b.HoraHasta" class="hora-input hora-hasta" />
+                                        </div>
+                                        <div class="hora-group">
+                                            <span class="hora-label">Cupos</span>
+                                            <input type="number" value="@b.Capacidad" class="hora-input capacidad" min="1" style="width:70px;" />
+                                        </div>
+                                        <button type="button" onclick="eliminarBloque(this)" style="background:transparent; border:none; color:#ef4444; font-weight:bold; cursor:pointer; margin-top:1.2rem;" title="Eliminar bloque">❌</button>
+                                    </div>
+                                }
                             </div>
                         </div>
                     }
                 </div>
-                <button type="submit" class="btn-guardar" id="btn-guardar-horarios" style="margin-top:1rem;">🗓️ Guardar horarios</button>
+
+                <div style="margin-top:2.5rem;">
+                    <h5 style="font-size:1rem; color:#1a3a4f; font-weight:700;">Fechas Especiales (Excepciones)</h5>
+                    <p class="turno-hint">¿Te tomás el día o trabajás horas distintas en una fecha puntual? (Podés agregar múltiples bloques para el mismo día)</p>
+                    
+                    <div class="exc-panel">
+                        <div style="display:flex; gap:0.5rem; align-items:flex-end; flex-wrap:wrap;">
+                            <div class="hora-group">
+                                <span class="hora-label">Fecha</span>
+                                <input type="text" id="exc-fecha" class="hora-input" placeholder="dd/mm/aaaa" style="background-color: white;" />
+                            </div>
+                            <div class="hora-group">
+                                <span class="hora-label">¿Atendés?</span>
+                                <select id="exc-trabaja" class="hora-input" onchange="toggleExcInputs()">
+                                    <option value="true">Sí (Modificar horario)</option>
+                                    <option value="false">No (Día libre / Feriado)</option>
+                                </select>
+                            </div>
+                            <div class="hora-group exc-detalle">
+                                <span class="hora-label">Desde</span>
+                                <input type="time" id="exc-desde" class="hora-input" value="08:00" />
+                            </div>
+                            <div class="hora-group exc-detalle">
+                                <span class="hora-label">Hasta</span>
+                                <input type="time" id="exc-hasta" class="hora-input" value="13:00" />
+                            </div>
+                            <div class="hora-group exc-detalle" style="width:70px;">
+                                <span class="hora-label">Cupos</span>
+                                <input type="number" id="exc-capacidad" class="hora-input" value="1" min="1" />
+                            </div>
+                            <button type="button" class="btn-edit-field" style="background:#2A6F97;color:white;border:none;" onclick="agregarExcepcion()">➕ Añadir</button>
+                        </div>
+                    </div>
+                    <div id="lista-excepciones" style="margin-top:1rem;"></div>
+                </div>
+
+                <hr style="border:none; border-top:1px solid #e2e8f0; margin: 2rem 0;" />
+                <button type="submit" class="btn-guardar" id="btn-guardar-horarios">🚀 Guardar toda la Agenda</button>
             </form>
         </div>
     </div>
@@ -191,52 +232,158 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+    <style>
+        .flatpickr-calendar { font-family:'Inter',sans-serif; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,0.15); }
+        .flatpickr-day.selected, .flatpickr-day.selected:hover { background:#2A6F97; border-color:#2A6F97; }
+    </style>
 <script>
-    function toggleDia(i, checked) {
-        document.getElementById('hora-desde-' + i).disabled = !checked;
-        document.getElementById('hora-hasta-' + i).disabled = !checked;
-        const row = document.getElementById('dia-row-' + i);
-        row.querySelector('.dia-status').textContent = checked ? '✅ Activo' : '—';
+    flatpickr("#exc-fecha", {
+        locale: "es",
+        dateFormat: "Y-m-d",     // El formato que lee tu Javascript para guardar
+        altInput: true,          // Crea el input visible
+        altFormat: "d/m/Y",      // Lo que ve el médico (DD/MM/YYYY)
+        disableMobile: "true"
+    });
+    function habilitarEdicion(inputId, btnElement) {
+        const input = document.getElementById(inputId);
+        input.removeAttribute('readonly'); input.focus();
+        if (inputId === 'perfil-password') input.placeholder = "Escribí tu nueva contraseña";
+        btnElement.style.display = 'none';
     }
 
-    function setTurno(tipo) {
-        const configs = {
-            manana: { desde: '08:00', hasta: '13:00' },
-            tarde:  { desde: '13:00', hasta: '20:00' },
-            ambos:  { desde: '08:00', hasta: '20:00' }
-        };
-        const c = configs[tipo];
-        document.querySelectorAll('.dia-check:checked').forEach(cb => {
-            const i = cb.dataset.idx;
-            document.getElementById('hora-desde-' + i).value = c.desde;
-            document.getElementById('hora-hasta-' + i).value = c.hasta;
+    // --- MANEJO DE BLOQUES MÚLTIPLES ---
+    function toggleDia(checkbox) {
+        const container = checkbox.closest('.dia-row-container');
+        const activo = checkbox.checked;
+        
+        container.querySelector('.btn-add-bloque').disabled = !activo;
+        const bloques = container.querySelectorAll('.bloque-item');
+        bloques.forEach(b => {
+            b.style.opacity = activo ? "1" : "0.4";
+            b.style.pointerEvents = activo ? "auto" : "none";
         });
     }
 
-    // Al enviar el form de horarios, construir los arrays en orden correcto
-    document.getElementById('formHorarios')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const form = this;
-        // Limpiar name de checkboxes y hora inputs para no enviar datos sucios
-        form.querySelectorAll('.dia-check, .hora-input').forEach(el => el.removeAttribute('name'));
+    function agregarBloque(btn) {
+        const list = btn.closest('.dia-row-container').querySelector('.bloques-list');
+        const div = document.createElement('div');
+        div.className = 'bloque-item';
+        div.style.cssText = 'display:flex; gap:1rem; align-items:center; margin-top:0.5rem;';
+        div.innerHTML = `
+            <div class="hora-group"><span class="hora-label">Desde</span><input type="time" value="16:00" class="hora-input hora-desde" /></div>
+            <div class="hora-group"><span class="hora-label">Hasta</span><input type="time" value="20:00" class="hora-input hora-hasta" /></div>
+            <div class="hora-group"><span class="hora-label">Cupos</span><input type="number" value="1" class="hora-input capacidad" min="1" style="width:70px;" /></div>
+            <button type="button" onclick="eliminarBloque(this)" style="background:transparent; border:none; color:#ef4444; font-weight:bold; cursor:pointer; margin-top:1.2rem;">❌</button>
+        `;
+        list.appendChild(div);
+    }
 
-        const totalDias = 7;
-        for (let i = 0; i < totalDias; i++) {
-            const cb = document.getElementById('dia-activo-' + i);
-            const desde = document.getElementById('hora-desde-' + i);
-            const hasta = document.getElementById('hora-hasta-' + i);
-
-            const addHidden = (name, value) => {
-                const h = document.createElement('input');
-                h.type = 'hidden'; h.name = name; h.value = value;
-                form.appendChild(h);
-            };
-
-            addHidden('diasActivos', cb?.checked ? 'true' : 'false');
-            addHidden('horasDesde', desde?.value || '08:00');
-            addHidden('horasHasta', hasta?.value || '13:00');
+    function eliminarBloque(btn) {
+        const list = btn.closest('.bloques-list');
+        // Obligamos a que haya por lo menos un bloque para que no se rompa la UI
+        if (list.querySelectorAll('.bloque-item').length > 1) {
+            btn.closest('.bloque-item').remove();
+        } else {
+            alert("Debe quedar al menos un bloque horario. Si no atendés, desactivá el día directamente.");
         }
-        form.submit();
+    }
+
+    // --- EXCEPCIONES ---
+    let excepciones = [
+        @foreach(var e in Model.Excepciones) {
+            <text>{ fecha: '@e.Fecha.ToString("yyyy-MM-dd")', trabaja: @e.Trabaja.ToString().ToLower(), horaDesde: '@e.HoraDesde', horaHasta: '@e.HoraHasta', capacidad: @(e.Capacidad ?? 1) },</text>
+        }
+    ];
+
+    function toggleExcInputs() {
+        const trabaja = document.getElementById('exc-trabaja').value === 'true';
+        document.querySelectorAll('.exc-detalle input').forEach(inp => {
+            inp.disabled = !trabaja;
+            if(!trabaja) inp.value = '';
+        });
+    }
+
+    function renderExcepciones() {
+        const container = document.getElementById('lista-excepciones');
+        container.innerHTML = '';
+        if (excepciones.length === 0) return container.innerHTML = '<p style="color:#94a3b8;font-size:0.85rem;">No hay excepciones cargadas.</p>';
+
+        excepciones.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+        excepciones.forEach((exc, index) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:white; border:1px solid #e2e8f0; padding:0.7rem; border-radius:8px; margin-bottom:0.5rem;';
+            const partes = exc.fecha.split('-');
+            const fechaLegible = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+            let texto = `<strong>${fechaLegible}</strong> — `;
+            if (exc.trabaja) texto += `Atiende de ${exc.horaDesde} a ${exc.horaHasta} (${exc.capacidad} cupos)`;
+            else texto += `<span style="color:#ef4444;font-weight:600;">Día Libre / No atiende</span>`;
+
+            div.innerHTML = `<span style="font-size:0.9rem;">${texto}</span><button type="button" style="background:#fee2e2;color:#ef4444;border:none;border-radius:6px;cursor:pointer;font-weight:bold;padding:0.2rem 0.5rem;" onclick="borrarExcepcion(${index})">X</button>`;
+            container.appendChild(div);
+        });
+    }
+
+    function agregarExcepcion() {
+        const fecha = document.getElementById('exc-fecha').value;
+        if (!fecha) return alert('Seleccioná una fecha.');
+        const trabaja = document.getElementById('exc-trabaja').value === 'true';
+        const horaDesde = document.getElementById('exc-desde').value;
+        const horaHasta = document.getElementById('exc-hasta').value;
+        const capacidad = parseInt(document.getElementById('exc-capacidad').value) || 1;
+
+        if (trabaja && (!horaDesde || !horaHasta)) return alert('Completá las horas.');
+        if (!trabaja) excepciones = excepciones.filter(e => e.fecha !== fecha); // Si no trabaja, borra cualquier bloque existente de ese día
+
+        excepciones.push({ fecha: fecha, trabaja: trabaja, horaDesde: trabaja ? horaDesde : null, horaHasta: trabaja ? horaHasta : null, capacidad: trabaja ? capacidad : null });
+        document.getElementById('exc-fecha').value = '';
+        renderExcepciones();
+    }
+
+    function borrarExcepcion(index) { excepciones.splice(index, 1); renderExcepciones(); }
+    renderExcepciones();
+
+    // --- GUARDADO VÍA FETCH ---
+    document.getElementById('formHorarios')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-guardar-horarios');
+        btn.disabled = true; btn.textContent = '⏳ Guardando agenda...';
+
+        const dto = { HorariosDefecto: [], Excepciones: excepciones };
+
+        document.querySelectorAll('.dia-row-container').forEach(row => {
+            const cb = row.querySelector('.dia-check');
+            const diaSemanaInt = parseInt(row.dataset.diasemana); // ACÁ ESTÁ EL FIX DEL DÍA!
+            
+            const bloquesArray = [];
+            row.querySelectorAll('.bloque-item').forEach(b => {
+                bloquesArray.push({
+                    HoraDesde: b.querySelector('.hora-desde').value,
+                    HoraHasta: b.querySelector('.hora-hasta').value,
+                    Capacidad: parseInt(b.querySelector('.capacidad').value) || 1
+                });
+            });
+
+            dto.HorariosDefecto.push({
+                DiaSemana: diaSemanaInt,
+                Activo: cb.checked,
+                Bloques: bloquesArray
+            });
+        });
+
+        try {
+            const response = await fetch('/Perfil/GuardarHorarios', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dto) });
+            const result = await response.json();
+            if (result.success) window.location.reload();
+            else { alert('Error: ' + result.mensaje); btn.disabled = false; btn.textContent = '🚀 Guardar toda la Agenda'; }
+        } catch (error) { alert('Error de conexión.'); btn.disabled = false; btn.textContent = '🚀 Guardar toda la Agenda'; }
     });
 </script>
+}
 }

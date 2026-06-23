@@ -1,50 +1,180 @@
-﻿@model IEnumerable<SistemaSaludGoya.Models.Turno>
-
+@model IEnumerable<SistemaSaludGoya.Models.Turno>
 @{
-    ViewData["Title"] = "Gestión de Turnos";
+    ViewData["Title"] = "Mis Turnos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Agenda de Turnos</h2>
-        <a asp-action="Create" class="btn btn-primary">Agendar Nuevo Turno</a>
-    </div>
+<style>
+    .page-header { margin-bottom: 2rem; }
+    .page-tag { display:inline-block; background:#E5ECF0; color:#2A6F97; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; }
+    .page-title { font-size:1.7rem; font-weight:800; color:#1a3a4f; letter-spacing:-0.5px; }
+    .page-subtitle { font-size:0.9rem; color:#64748b; margin-top:0.2rem; }
 
-    <table class="table table-striped table-hover border">
-        <thead class="table-dark">
-            <tr>
-                <th>ID Turno</th>
-                <th>Fecha y Hora</th>
-                <th>Paciente</th>
-                <th>Médico</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                foreach (var turno in Model)
-                {
-                    <tr>
-                        <td>@turno.IdTurno</td>
-                        <td>@turno.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+    .turnos-toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:0.75rem; }
+    .btn-nuevo-turno { display:inline-flex; align-items:center; gap:0.5rem; background:#2A6F97; color:white; padding:0.6rem 1.2rem; border-radius:10px; text-decoration:none; font-weight:600; font-size:0.875rem; transition:all 0.18s; box-shadow:0 4px 14px rgba(42,111,151,0.25); }
+    .btn-nuevo-turno:hover { background:#1a4f6e; color:white; text-decoration:none; transform:translateY(-1px); }
 
-                        <td>@turno.Paciente.Usuario.Apellido, @turno.Paciente.Usuario.Nombre</td>
+    .turno-card { background:white; border-radius:16px; box-shadow:0 4px 20px rgba(42,111,151,0.07); border:1px solid rgba(42,111,151,0.08); margin-bottom:1rem; overflow:hidden; transition:transform 0.18s, box-shadow 0.18s; }
+    .turno-card:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(42,111,151,0.12); }
+    .turno-card-header { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid #f0f4f7; }
+    .turno-medico { display:flex; align-items:center; gap:0.75rem; }
+    .turno-avatar { width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,#2A6F97,#1a4f6e); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; flex-shrink:0; }
+    .turno-medico-info strong { display:block; font-size:0.95rem; color:#1a3a4f; font-weight:700; }
+    .turno-medico-info small { font-size:0.8rem; color:#64748b; }
+    .badge-estado { padding:0.3rem 0.75rem; border-radius:20px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+    .badge-solicitado  { background:#fff3e0; color:#e65100; }
+    .badge-confirmado  { background:#e8f5e9; color:#2e7d32; }
+    .badge-atendido    { background:#e3f2fd; color:#1565c0; }
+    .badge-cancelado   { background:#ffebee; color:#c62828; }
+    .turno-card-body { padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; }
+    .turno-detalle { display:flex; gap:1.5rem; flex-wrap:wrap; }
+    .turno-info-item { display:flex; align-items:center; gap:0.4rem; font-size:0.85rem; color:#374151; }
+    .turno-info-item .icon { font-size:1rem; }
+    .turno-motivo { font-size:0.8rem; color:#64748b; margin-top:0.5rem; font-style:italic; }
+    .btn-cancelar { background:#fff5f5; color:#c62828; border:1.5px solid #fca5a5; padding:0.4rem 0.9rem; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer; transition:all 0.18s; }
+    .btn-cancelar:hover { background:#fee2e2; border-color:#c62828; }
 
-                        <td>Dr/a. @turno.Medico.Usuario.Apellido, @turno.Medico.Usuario.Nombre</td>
+    .empty-state { text-align:center; padding:4rem 2rem; }
+    .empty-icon { font-size:4rem; margin-bottom:1rem; }
+    .empty-title { font-size:1.2rem; font-weight:700; color:#1a3a4f; margin-bottom:0.5rem; }
+    .empty-sub { color:#64748b; margin-bottom:1.5rem; }
 
-                        <td>
-                            <a asp-action="Details" asp-route-id="@turno.IdTurno" class="btn btn-info btn-sm text-white">Ver Detalle</a>
-                        </td>
-                    </tr>
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="5" class="text-center text-muted">No hay turnos programados en la agenda.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    /* Modal cancelar */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center; }
+    .modal-overlay.active { display:flex; }
+    .modal-box { background:white; border-radius:16px; padding:2rem; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+    .modal-title { font-size:1.1rem; font-weight:700; color:#1a3a4f; margin-bottom:0.75rem; }
+    .modal-sub { font-size:0.875rem; color:#64748b; margin-bottom:1rem; }
+    .modal-textarea { width:100%; border:1.5px solid #e2e8f0; border-radius:10px; padding:0.75rem; font-size:0.875rem; resize:none; outline:none; transition:border 0.18s; }
+    .modal-textarea:focus { border-color:#2A6F97; }
+    .modal-actions { display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem; }
+    .btn-modal-cancel { background:#f1f5f9; color:#374151; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:600; cursor:pointer; }
+    .btn-modal-confirm { background:#c62828; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:600; cursor:pointer; }
+    .btn-modal-confirm:hover { background:#991b1b; }
+</style>
+
+<div class="page-header">
+    <span class="page-tag">📋 Mis Turnos</span>
+    <h1 class="page-title">Historial de turnos</h1>
+    <p class="page-subtitle">Todos tus turnos médicos en un solo lugar</p>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert-app-success">✅ @TempData["Success"]</div>
+}
+
+<div class="turnos-toolbar">
+    <span style="font-size:0.875rem;color:#64748b;">@Model.Count() turno(s) en total</span>
+    <a asp-controller="Turno" asp-action="Create" class="btn-nuevo-turno" id="btn-nuevo-turno">
+        📅 Solicitar nuevo turno
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="app-card">
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div class="empty-title">No tenés turnos registrados</div>
+            <p class="empty-sub">Solicitá tu primer turno médico fácilmente.</p>
+            <a asp-controller="Turno" asp-action="Create" class="btn-nuevo-turno" id="btn-primer-turno">
+                📅 Solicitar turno
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    @foreach (var turno in Model)
+    {
+        var iniciales = turno.Medico?.Usuario != null
+            ? $"{turno.Medico.Usuario.Nombre?[0]}{turno.Medico.Usuario.Apellido?[0]}"
+            : "?";
+        var medicoNombre = turno.Medico?.Usuario != null
+            ? $"Dr/a. {turno.Medico.Usuario.Nombre} {turno.Medico.Usuario.Apellido}"
+            : "Médico no asignado";
+        var badgeClass = turno.Estado.ToString().ToLower() switch
+        {
+            "solicitado" => "badge-solicitado",
+            "confirmado" => "badge-confirmado",
+            "atendido"   => "badge-atendido",
+            "cancelado"  => "badge-cancelado",
+            _ => "badge-solicitado"
+        };
+        var estadoLabel = turno.Estado.ToString() switch
+        {
+            "Solicitado" => "Pendiente",
+            _ => turno.Estado.ToString()
+        };
+        var puedeCancel = turno.Estado != SistemaSaludGoya.Models.EstadoTurno.Cancelado
+                       && turno.Estado != SistemaSaludGoya.Models.EstadoTurno.Atendido
+                       && turno.FechaHora > DateTime.Now;
+
+        <div class="turno-card">
+            <div class="turno-card-header">
+                <div class="turno-medico">
+                    <div class="turno-avatar">@iniciales</div>
+                    <div class="turno-medico-info">
+                        <strong>@medicoNombre</strong>
+                        <small>Consulta médica</small>
+                    </div>
+                </div>
+                <span class="badge-estado @badgeClass">@estadoLabel</span>
+            </div>
+            <div class="turno-card-body">
+                <div>
+                    <div class="turno-detalle">
+                        <span class="turno-info-item"><span class="icon">📅</span> @turno.FechaHora.ToString("dd/MM/yyyy")</span>
+                        <span class="turno-info-item"><span class="icon">🕐</span> @turno.FechaHora.ToString("HH:mm") hs</span>
+                        <span class="turno-info-item"><span class="icon">📋</span> Turno #@turno.IdTurno</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(turno.MotivoConsulta))
+                    {
+                        <div class="turno-motivo">💬 @turno.MotivoConsulta</div>
+                    }
+                </div>
+                @if (puedeCancel)
+                {
+                    <button class="btn-cancelar"
+                            id="btn-cancelar-@turno.IdTurno"
+                            onclick="abrirModalCancelar(@turno.IdTurno)">
+                        ✕ Cancelar
+                    </button>
+                }
+            </div>
+        </div>
+    }
+}
+
+<!-- Modal cancelar turno -->
+<div class="modal-overlay" id="modalCancelar">
+    <div class="modal-box">
+        <div class="modal-title">❌ Cancelar turno</div>
+        <p class="modal-sub">¿Estás seguro que querés cancelar este turno? Indicá el motivo (opcional).</p>
+        <form method="post" asp-action="Cancelar" id="formCancelar">
+            <input type="hidden" name="id" id="cancelarId" />
+            <textarea name="motivo" class="modal-textarea" rows="3"
+                      placeholder="Motivo de cancelación..." required></textarea>
+            <div class="modal-actions">
+                <button type="button" class="btn-modal-cancel" onclick="cerrarModal()" id="btn-cerrar-modal">Volver</button>
+                <button type="submit" class="btn-modal-confirm" id="btn-confirmar-cancelar">Confirmar cancelación</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function abrirModalCancelar(id) {
+            document.getElementById('cancelarId').value = id;
+            document.getElementById('modalCancelar').classList.add('active');
+        }
+        function cerrarModal() {
+            document.getElementById('modalCancelar').classList.remove('active');
+        }
+        document.getElementById('modalCancelar').addEventListener('click', function(e) {
+            if (e.target === this) cerrarModal();
+        });
+    </script>
+}
